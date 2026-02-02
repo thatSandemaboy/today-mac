@@ -51,7 +51,7 @@ Plus **Monthly Goals** always visible at the top — your north star that keeps 
 
 ```bash
 # Clone the repo
-git clone https://github.com/YOUR_USERNAME/today-mac.git
+git clone https://github.com/thatSandemaboy/today-mac.git
 cd today-mac
 
 # Install dependencies
