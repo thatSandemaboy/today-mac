@@ -1,0 +1,2722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Today</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      /* Native macOS Colors (Approximate for CSS) */
+      --bg-primary: rgba(255, 255, 255, 0.5); /* Translucent for vibrancy */
+      --bg-secondary: rgba(255, 255, 255, 0.4);
+      --bg-tertiary: rgba(0, 0, 0, 0.05);
+      
+      --text-primary: #000000;
+      --text-secondary: rgba(60, 60, 67, 0.6);
+      --text-muted: rgba(60, 60, 67, 0.3);
+
+      /* macOS Accent (Blue/Indigo preference) */
+      --accent: #007AFF; /* System Blue */
+      --accent-hover: #0062cc;
+      --accent-subtle: rgba(0, 122, 255, 0.1);
+      --accent-foreground: #ffffff;
+
+      --border: rgba(0, 0, 0, 0.1);
+      --border-strong: rgba(0, 0, 0, 0.2);
+      --border-focus: #007AFF;
+
+      --done-bg: rgba(255, 255, 255, 0.2);
+      --done-text: rgba(60, 60, 67, 0.4);
+
+      /* Column Tints */
+      --bg-today: rgba(0, 122, 255, 0.03);
+      --bg-today-header: rgba(0, 122, 255, 0.05);
+
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow: 0 2px 8px rgba(0,0,0,0.1);
+      --shadow-focus: 0 0 0 2px rgba(0, 122, 255, 0.3);
+      --shadow-lg: 0 16px 32px rgba(0,0,0,0.2);
+      
+      --radius: 10px;
+      --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-primary: rgba(30, 30, 30, 0.5); /* Translucent for vibrancy */
+        --bg-secondary: rgba(40, 40, 40, 0.4);
+        --bg-tertiary: rgba(255, 255, 255, 0.05);
+        
+        --text-primary: #ffffff;
+        --text-secondary: rgba(235, 235, 245, 0.6);
+        --text-muted: rgba(235, 235, 245, 0.3);
+
+        --accent: #0A84FF; /* System Blue Dark */
+        --accent-hover: #409CFF;
+        --accent-subtle: rgba(10, 132, 255, 0.15);
+        --accent-foreground: #ffffff;
+
+        --border: rgba(255, 255, 255, 0.1);
+        --border-strong: rgba(255, 255, 255, 0.15);
+        --border-focus: #0A84FF;
+
+        --done-bg: rgba(0, 0, 0, 0.2);
+        --done-text: rgba(235, 235, 245, 0.3);
+
+        --bg-today: rgba(10, 132, 255, 0.05);
+        --bg-today-header: rgba(10, 132, 255, 0.08);
+
+        --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+        --shadow: 0 2px 8px rgba(0,0,0,0.4);
+        --shadow-focus: 0 0 0 2px rgba(10, 132, 255, 0.3);
+        --shadow-lg: 0 16px 32px rgba(0,0,0,0.5);
+      }
+    }
+
+    body {
+      font-family: var(--font-stack);
+      background: transparent; /* Essential for vibrancy */
+      color: var(--text-primary);
+      height: 100vh;
+      overflow: hidden;
+      -webkit-app-region: drag;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding-top: 48px;
+    }
+
+    /* Monthly Goals as Sidebar/Toolbar Item */
+    .monthly-goals {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      -webkit-app-region: drag; /* Allow dragging from top area */
+      background: transparent;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .monthly-header {
+      margin-bottom: 0;
+      min-width: 120px;
+    }
+    
+    .monthly-pills {
+      -webkit-app-region: no-drag; /* Buttons need to be clickable */
+    }
+
+    .monthly-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .monthly-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .monthly-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .monthly-pill {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .monthly-pill:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .monthly-pill.selected {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--accent-foreground);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .monthly-pill.add-pill {
+      color: var(--text-secondary);
+      border-style: dashed;
+      box-shadow: none;
+    }
+
+    .monthly-pill.add-pill:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .monthly-input {
+      background: transparent;
+      border: none;
+      outline: none;
+      font-size: 13px;
+      color: var(--text-primary);
+      width: 120px;
+      font-family: inherit;
+    }
+
+    .goal-progress {
+      font-size: 10px;
+      color: var(--text-muted);
+      background: var(--bg-tertiary);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .monthly-pill.selected .goal-progress {
+      background: rgba(255,255,255,0.2);
+      color: var(--accent-foreground);
+    }
+
+    /* Kanban Board */
+    .kanban {
+      display: flex;
+      flex: 1;
+      gap: 16px;
+      overflow: hidden;
+      -webkit-app-region: no-drag;
+      padding: 16px 20px;
+    }
+
+    .column {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      transition: all 0.2s ease;
+      backdrop-filter: blur(20px);
+    }
+
+    .column:last-child {
+      border-right: 1px solid var(--border);
+    }
+
+    /* Today Column Special Treatment */
+    .column[data-column="today"] {
+      background: var(--bg-today);
+      flex: 1.2;
+      border-color: var(--accent-subtle);
+    }
+
+    .column[data-column="done"] {
+      background: var(--done-bg);
+      opacity: 0.8;
+      border-style: dashed;
+    }
+
+    .column.hidden {
+      flex: 0;
+      width: 0;
+      padding: 0;
+      margin: 0;
+      border: none;
+      overflow: hidden;
+    }
+
+    .column.focused {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-subtle);
+    }
+
+    .column.focus-mode {
+      flex: 1;
+    }
+
+    .column-header {
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(0,0,0,0.03);
+    }
+
+    .column[data-column="today"] .column-header {
+      background: var(--bg-today-header);
+    }
+
+    .column-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .column[data-column="today"] .column-title {
+      color: var(--accent);
+    }
+
+    .column-count {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: rgba(0,0,0,0.05);
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+
+    .column[data-column="today"] .column-count {
+      background: var(--accent-subtle);
+      color: var(--accent);
+    }
+
+    .column-key {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-weight: 500;
+      opacity: 0.6;
+      border: 1px solid var(--border);
+      padding: 1px 4px;
+      border-radius: 4px;
+    }
+
+    .tasks {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 16px;
+    }
+
+    .task {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+      box-shadow: var(--shadow-sm);
+      position: relative;
+    }
+
+    .task:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .task.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-subtle), var(--shadow);
+      z-index: 10;
+    }
+
+    .task.dragging {
+      opacity: 0.4;
+      transform: scale(0.98);
+    }
+
+    .task.filtered-out {
+      opacity: 0.3;
+    }
+
+    .task-content {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .task-text {
+      font-size: 13.5px;
+      line-height: 1.5;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .task-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .task-time {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .task-goal-tag {
+      font-size: 10px;
+      color: var(--text-secondary);
+      background: var(--bg-tertiary);
+      padding: 1px 6px;
+      border-radius: 3px;
+    }
+
+    /* macOS Input Style */
+    .task-input {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border); /* Focus ring will handle the rest */
+      border-radius: 4px;
+      padding: 4px 8px;
+      outline: none;
+      font-size: 13.5px;
+      line-height: 1.5;
+      color: var(--text-primary);
+      width: 100%;
+      resize: none;
+      font-family: inherit;
+      font-weight: 400;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .task-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-subtle);
+      background: var(--bg-primary);
+    }
+
+    .column.done .task {
+      background: transparent;
+      border-color: transparent;
+      box-shadow: none;
+      border-bottom: 1px solid var(--border);
+      border-radius: 0;
+      padding: 10px 14px;
+      margin-bottom: 0;
+    }
+
+    .column.done .task:hover {
+      background: var(--bg-primary);
+      border-radius: 8px;
+      border-color: var(--border);
+    }
+
+    .column.done .task.selected {
+      background: var(--bg-primary);
+      border-radius: 8px;
+    }
+
+    .column.done .task-text {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+
+    .add-task {
+      padding: 8px 16px 16px;
+    }
+
+    /* macOS Button Style */
+    .add-task-btn {
+      width: 100%;
+      padding: 6px 12px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: default;
+      transition: all 0.1s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.02);
+    }
+
+    .add-task-btn:hover {
+      background: var(--bg-secondary);
+      border-color: var(--border-strong);
+    }
+
+    .add-task-btn:active {
+      background: var(--bg-tertiary);
+      transform: translateY(1px);
+    }
+
+    .add-task-btn svg {
+      opacity: 0.6;
+    }
+
+    /* Shortcut help */
+    .shortcuts-help {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      padding: 8px 20px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      display: flex;
+      gap: 24px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(8px);
+      -webkit-app-region: no-drag;
+      z-index: 100;
+    }
+
+    .shortcuts-help.hidden {
+      display: none;
+    }
+
+    .shortcut {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    kbd {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-strong);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 10px;
+      font-family: inherit;
+      color: var(--text-primary);
+      box-shadow: 0 1px 1px rgba(0,0,0,0.05);
+      min-width: 18px;
+      text-align: center;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 32px 16px;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 400;
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      margin-top: 8px;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--border-strong);
+    }
+
+    /* Timer styles */
+    .task.timing {
+      background: linear-gradient(135deg, var(--accent-subtle), var(--bg-primary));
+      border-color: var(--accent);
+      animation: timer-pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes timer-pulse {
+      0%, 100% { box-shadow: 0 0 0 2px var(--accent-subtle), var(--shadow); }
+      50% { box-shadow: 0 0 0 4px var(--accent-subtle), var(--shadow); }
+    }
+
+    .task-timer {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+    }
+
+    .timer-display {
+      font-size: 20px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+
+    .timer-controls {
+      display: flex;
+      gap: 8px;
+      margin-left: auto;
+    }
+
+    .timer-btn {
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg-tertiary);
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s ease;
+    }
+
+    .timer-btn:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--accent-foreground);
+    }
+
+    /* Snoozed indicator */
+    .task.snoozed {
+      opacity: 0.5;
+      background: var(--bg-tertiary);
+    }
+
+    .snooze-badge {
+      font-size: 10px;
+      color: var(--accent);
+      background: var(--accent-subtle);
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* macOS Search Box */
+    .search-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.2); /* Lighter overlay for macOS feel */
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 140px;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s ease;
+      -webkit-app-region: no-drag;
+      backdrop-filter: blur(5px);
+    }
+
+    .search-overlay.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .search-box {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      width: 500px;
+      max-width: 90%;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.2);
+      overflow: hidden;
+    }
+
+    .search-input-wrapper {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .search-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-size: 16px;
+      color: var(--text-primary);
+      font-family: inherit;
+    }
+
+    .search-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .search-results {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .search-result {
+      padding: 12px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: background 0.15s ease;
+    }
+
+    .search-result:hover {
+      background: var(--bg-secondary);
+    }
+
+    .search-result.selected {
+      background: var(--bg-tertiary);
+    }
+
+    .search-result-column {
+      font-size: 10px;
+      color: var(--text-muted);
+      background: var(--bg-tertiary);
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .search-result-text {
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+
+    .search-empty {
+      padding: 24px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    /* Modal Styles (macOS Sheet-like) */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: flex-start; /* Sheet animation usually comes from top */
+      justify-content: center;
+      padding-top: 60px;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s ease;
+      -webkit-app-region: no-drag;
+    }
+
+    .modal-overlay.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: 450px;
+      max-width: 90%;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      overflow: hidden;
+      transform: translateY(-20px);
+      transition: transform 0.25s cubic-bezier(0.19, 1, 0.22, 1);
+    }
+
+    .modal-overlay.visible .modal {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .modal-subtitle {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .modal-body {
+      padding: 16px 24px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .modal-task {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0;
+    }
+
+    .modal-task-checkbox {
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--border-strong);
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+
+    .modal-task-checkbox.checked {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .modal-task-checkbox.checked svg {
+      opacity: 1;
+    }
+
+    .modal-task-checkbox svg {
+      opacity: 0;
+      width: 12px;
+      height: 12px;
+      color: var(--accent-foreground);
+    }
+
+    .modal-task-text {
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+
+    .modal-btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+
+    .modal-btn-secondary {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+    }
+
+    .modal-btn-secondary:hover {
+      background: var(--bg-tertiary);
+    }
+
+    .modal-btn-primary {
+      background: var(--accent);
+      border: 1px solid var(--accent);
+      color: var(--accent-foreground);
+    }
+
+    .modal-btn-primary:hover {
+      opacity: 0.9;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+      box-shadow: var(--shadow-lg);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s ease;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .toast.visible {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .toast kbd {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-size: 10px;
+      font-family: inherit;
+    }
+
+    /* Focus indicator */
+    .focus-indicator {
+      position: fixed;
+      top: 60px;
+      right: 24px;
+      background: var(--accent);
+      color: var(--accent-foreground);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s ease;
+      -webkit-app-region: no-drag;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .focus-indicator.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* Task notes */
+    .task-notes {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+    }
+
+    .task-notes-input {
+      background: transparent;
+      border: none;
+      outline: none;
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--text-secondary);
+      width: 100%;
+      resize: none;
+      font-family: inherit;
+      padding: 0;
+      min-height: 40px;
+    }
+
+    .task-notes-text {
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--text-secondary);
+      white-space: pre-wrap;
+    }
+
+    .task.expanded {
+      background: var(--bg-secondary);
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="monthly-goals" id="monthlyGoals">
+      <div class="monthly-header">
+        <span class="monthly-title">Monthly Focus</span>
+        <span class="monthly-hint">⌘M</span>
+      </div>
+      <div class="monthly-pills" id="monthlyPills"></div>
+    </div>
+
+    <div class="kanban">
+      <div class="column" data-column="week" id="colWeek">
+        <div class="column-header">
+          <span class="column-title">This Week <span class="column-key">1</span></span>
+          <span class="column-count" id="weekCount">0</span>
+        </div>
+        <div class="tasks" id="weekTasks"></div>
+        <div class="add-task">
+          <button class="add-task-btn" onclick="addTask('week')">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 2.5V9.5M2.5 6H9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Add task
+          </button>
+        </div>
+      </div>
+
+      <div class="column" data-column="today" id="colToday">
+        <div class="column-header">
+          <span class="column-title">Today <span class="column-key">2</span></span>
+          <span class="column-count" id="todayCount">0</span>
+        </div>
+        <div class="tasks" id="todayTasks"></div>
+        <div class="add-task">
+          <button class="add-task-btn" onclick="addTask('today')">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 2.5V9.5M2.5 6H9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Add task
+          </button>
+        </div>
+      </div>
+
+      <div class="column" data-column="done" id="colDone">
+        <div class="column-header">
+          <span class="column-title">Done <span class="column-key">3</span></span>
+          <span class="column-count" id="doneCount">0</span>
+        </div>
+        <div class="tasks" id="doneTasks"></div>
+      </div>
+    </div>
+
+    <div class="shortcuts-help" id="shortcutsHelp">
+      <span class="shortcut"><kbd>J</kbd><kbd>K</kbd> Nav</span>
+      <span class="shortcut"><kbd>H</kbd><kbd>L</kbd> Move</span>
+      <span class="shortcut"><kbd>Space</kbd> Timer</span>
+      <span class="shortcut"><kbd>S</kbd> Snooze</span>
+      <span class="shortcut"><kbd>/</kbd> Search</span>
+      <span class="shortcut"><kbd>⌘E</kbd> Edit file</span>
+    </div>
+
+    <div class="focus-indicator" id="focusIndicator">Focus Mode <kbd>⌘.</kbd></div>
+
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <!-- Search Overlay -->
+  <div class="search-overlay" id="searchOverlay">
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+        <input type="text" class="search-input" id="searchInput" placeholder="Search tasks...">
+        <kbd>Esc</kbd>
+      </div>
+      <div class="search-results" id="searchResults"></div>
+    </div>
+  </div>
+
+  <!-- Carryover Modal -->
+  <div class="modal-overlay" id="carryoverModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Good morning!</div>
+        <div class="modal-subtitle">You have tasks from yesterday. What would you like to do?</div>
+      </div>
+      <div class="modal-body" id="carryoverTasks"></div>
+      <div class="modal-footer">
+        <button class="modal-btn modal-btn-secondary" onclick="carryoverKeepAll()">Keep in Today</button>
+        <button class="modal-btn modal-btn-primary" onclick="carryoverMoveSelected()">Move checked to Week</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Weekly Review Modal -->
+  <div class="modal-overlay" id="weeklyReviewModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Weekly Review</div>
+        <div class="modal-subtitle">Review your completed tasks and plan the week ahead</div>
+      </div>
+      <div class="modal-body" id="weeklyReviewBody">
+        <div style="margin-bottom: 16px;">
+          <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">COMPLETED THIS WEEK</div>
+          <div id="weeklyDoneList"></div>
+        </div>
+        <div>
+          <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">CARRYING OVER</div>
+          <div id="weeklyCarryList"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn modal-btn-secondary" onclick="closeWeeklyReview()">Close</button>
+        <button class="modal-btn modal-btn-primary" onclick="archiveAndCloseReview()">Archive Done & Start Fresh</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State
+    let state = {
+      tasks: {
+        week: [],
+        today: [],
+        done: []
+      },
+      monthlyGoals: [],
+      focusedColumn: 'week',
+      selectedTaskIndex: -1,
+      editingMonthly: false,
+      focusMode: false,
+      selectedGoalId: null,
+      expandedTaskId: null,
+      lastVisitDate: null,
+      activeTimerTaskId: null,
+      timerSeconds: 0,
+      soundEnabled: true
+    };
+
+    // Timer interval
+    let timerInterval = null;
+
+    // Undo history
+    let undoStack = [];
+    const MAX_UNDO = 50;
+
+    // Audio context for sounds
+    let audioContext = null;
+
+    function initAudio() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    // Sound effects
+    function playSound(type) {
+      if (!state.soundEnabled) return;
+      initAudio();
+
+      const ctx = audioContext;
+      const now = ctx.currentTime;
+
+      if (type === 'click') {
+        // Soft click for navigation
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = 1200;
+        osc.type = 'sine';
+        gain.gain.setValueAtTime(0.03, now);
+        gain.gain.exponentialDecayTo && gain.gain.exponentialDecayTo(0.001, now + 0.05);
+        gain.gain.setValueAtTime(0.03, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.03);
+        osc.start(now);
+        osc.stop(now + 0.03);
+      } else if (type === 'done') {
+        // Satisfying completion sound
+        const osc1 = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(ctx.destination);
+        osc1.frequency.value = 880;
+        osc2.frequency.value = 1320;
+        osc1.type = 'sine';
+        osc2.type = 'sine';
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.15);
+        osc1.start(now);
+        osc2.start(now + 0.03);
+        osc1.stop(now + 0.1);
+        osc2.stop(now + 0.15);
+      } else if (type === 'whoosh') {
+        // Whoosh for clearing/archiving
+        const noise = ctx.createBufferSource();
+        const buffer = ctx.createBuffer(1, ctx.sampleRate * 0.2, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < buffer.length; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / buffer.length, 2);
+        }
+        noise.buffer = buffer;
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 800;
+        const gain = ctx.createGain();
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+        gain.gain.setValueAtTime(0.06, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.2);
+        noise.start(now);
+      } else if (type === 'move') {
+        // Soft move sound
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.setValueAtTime(600, now);
+        osc.frequency.linearRampToValueAtTime(800, now + 0.06);
+        osc.type = 'sine';
+        gain.gain.setValueAtTime(0.04, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.06);
+        osc.start(now);
+        osc.stop(now + 0.06);
+      } else if (type === 'timer') {
+        // Timer complete - gentle chime
+        [523, 659, 784].forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.frequency.value = freq;
+          osc.type = 'sine';
+          gain.gain.setValueAtTime(0, now + i * 0.1);
+          gain.gain.linearRampToValueAtTime(0.1, now + i * 0.1 + 0.02);
+          gain.gain.linearRampToValueAtTime(0, now + i * 0.1 + 0.3);
+          osc.start(now + i * 0.1);
+          osc.stop(now + i * 0.1 + 0.3);
+        });
+      }
+    }
+
+    // Save state for undo
+    function saveForUndo(action) {
+      undoStack.push({
+        action,
+        state: JSON.parse(JSON.stringify({
+          tasks: state.tasks,
+          monthlyGoals: state.monthlyGoals
+        }))
+      });
+      if (undoStack.length > MAX_UNDO) {
+        undoStack.shift();
+      }
+    }
+
+    // Undo last action
+    function undo() {
+      if (undoStack.length === 0) {
+        showToast('Nothing to undo');
+        return;
+      }
+      const last = undoStack.pop();
+      state.tasks = last.state.tasks;
+      state.monthlyGoals = last.state.monthlyGoals;
+      saveState();
+      renderAll();
+      showToast(`Undid: ${last.action}`);
+    }
+
+    // File path (set by main process)
+    let tasksFilePath = '';
+
+    // Parse markdown to state
+    function parseMarkdown(content) {
+      const lines = content.split('\n');
+      const newState = {
+        monthlyGoals: [],
+        tasks: { week: [], today: [], done: [] }
+      };
+
+      let currentSection = null;
+      let currentTask = null;
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const trimmed = line.trim();
+
+        // Section headers
+        if (trimmed === '# Monthly Goals') {
+          currentSection = 'goals';
+          currentTask = null;
+          continue;
+        } else if (trimmed === '# This Week') {
+          currentSection = 'week';
+          currentTask = null;
+          continue;
+        } else if (trimmed === '# Today') {
+          currentSection = 'today';
+          currentTask = null;
+          continue;
+        } else if (trimmed === '# Done') {
+          currentSection = 'done';
+          currentTask = null;
+          continue;
+        }
+
+        // Skip empty lines
+        if (!trimmed) continue;
+
+        // Goals (simple list)
+        if (currentSection === 'goals' && trimmed.startsWith('- ')) {
+          const text = trimmed.slice(2).trim();
+          if (text) {
+            newState.monthlyGoals.push({
+              id: generateId(),
+              text: text
+            });
+          }
+          continue;
+        }
+
+        // Tasks
+        if (['week', 'today', 'done'].includes(currentSection)) {
+          // Task line: - text or - ~~text~~ *time*
+          if (trimmed.startsWith('- ')) {
+            let text = trimmed.slice(2).trim();
+            let completedAt = null;
+
+            // Parse done items: ~~text~~ *time ago*
+            if (currentSection === 'done') {
+              const strikeMatch = text.match(/^~~(.+?)~~\s*\*(.+?)\*$/);
+              if (strikeMatch) {
+                text = strikeMatch[1];
+                const timeStr = strikeMatch[2];
+                completedAt = parseRelativeTime(timeStr);
+              } else {
+                // Just strikethrough without time
+                const simpleStrike = text.match(/^~~(.+?)~~$/);
+                if (simpleStrike) {
+                  text = simpleStrike[1];
+                }
+              }
+            }
+
+            currentTask = {
+              id: generateId(),
+              text: text,
+              createdAt: Date.now(),
+              notes: '',
+              goalId: null
+            };
+
+            if (completedAt) {
+              currentTask.completedAt = completedAt;
+            }
+
+            newState.tasks[currentSection].push(currentTask);
+            continue;
+          }
+
+          // Indented lines are metadata
+          if (currentTask && line.startsWith('  ')) {
+            const metaLine = trimmed;
+
+            // Notes
+            if (metaLine.startsWith('> ')) {
+              currentTask.notes = metaLine.slice(2);
+            }
+            // Goal tag
+            else if (metaLine.startsWith('Goal: ')) {
+              const goalName = metaLine.slice(6);
+              const goal = newState.monthlyGoals.find(g => g.text === goalName);
+              if (goal) {
+                currentTask.goalId = goal.id;
+              }
+            }
+            // Snoozed
+            else if (metaLine.startsWith('Snoozed: ')) {
+              const snoozeDate = metaLine.slice(9);
+              currentTask.snoozedUntil = new Date(snoozeDate).getTime();
+            }
+          }
+        }
+      }
+
+      return newState;
+    }
+
+    // Parse relative time string back to timestamp (approximate)
+    function parseRelativeTime(timeStr) {
+      const now = Date.now();
+      if (timeStr === 'just now') return now;
+
+      const match = timeStr.match(/^(\d+)([mhdw])\s*ago$/);
+      if (match) {
+        const num = parseInt(match[1]);
+        const unit = match[2];
+        const multipliers = { m: 60000, h: 3600000, d: 86400000, w: 604800000 };
+        return now - (num * (multipliers[unit] || 0));
+      }
+
+      if (timeStr === 'yesterday') return now - 86400000;
+
+      return now - 86400000; // Default to 1 day ago
+    }
+
+    // Convert state to markdown
+    function stateToMarkdown() {
+      let md = '';
+
+      // Monthly Goals
+      md += '# Monthly Goals\n';
+      state.monthlyGoals.forEach(goal => {
+        md += `- ${goal.text}\n`;
+      });
+      md += '\n';
+
+      // This Week
+      md += '# This Week\n';
+      state.tasks.week.forEach(task => {
+        md += `- ${task.text}\n`;
+        if (task.notes) md += `  > ${task.notes}\n`;
+        if (task.goalId) {
+          const goal = state.monthlyGoals.find(g => g.id === task.goalId);
+          if (goal) md += `  Goal: ${goal.text}\n`;
+        }
+        if (task.snoozedUntil) md += `  Snoozed: ${new Date(task.snoozedUntil).toISOString()}\n`;
+      });
+      md += '\n';
+
+      // Today
+      md += '# Today\n';
+      state.tasks.today.forEach(task => {
+        md += `- ${task.text}\n`;
+        if (task.notes) md += `  > ${task.notes}\n`;
+        if (task.goalId) {
+          const goal = state.monthlyGoals.find(g => g.id === task.goalId);
+          if (goal) md += `  Goal: ${goal.text}\n`;
+        }
+        if (task.snoozedUntil) md += `  Snoozed: ${new Date(task.snoozedUntil).toISOString()}\n`;
+      });
+      md += '\n';
+
+      // Done
+      md += '# Done\n';
+      state.tasks.done.forEach(task => {
+        const timeStr = task.completedAt ? formatRelativeTime(task.completedAt) : '';
+        md += `- ~~${task.text}~~${timeStr ? ` *${timeStr}*` : ''}\n`;
+        if (task.notes) md += `  > ${task.notes}\n`;
+      });
+
+      return md;
+    }
+
+    // Load state from markdown content
+    function loadFromMarkdown(content) {
+      const parsed = parseMarkdown(content);
+      state.monthlyGoals = parsed.monthlyGoals;
+      state.tasks = parsed.tasks;
+    }
+
+    // Save state to file
+    function saveState() {
+      const content = stateToMarkdown();
+      if (typeof require !== 'undefined') {
+        const { ipcRenderer } = require('electron');
+        ipcRenderer.send('save-tasks', content);
+      }
+      // Also keep localStorage as backup
+      localStorage.setItem('todayApp', JSON.stringify({
+        tasks: state.tasks,
+        monthlyGoals: state.monthlyGoals,
+        lastVisitDate: state.lastVisitDate
+      }));
+    }
+
+    // Load state (called on startup, will be overwritten by file)
+    function loadState() {
+      // Try localStorage first as fallback
+      const saved = localStorage.getItem('todayApp');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          state = { ...state, ...parsed };
+        } catch (e) {
+          console.error('Failed to load state:', e);
+        }
+      }
+    }
+
+    // Generate unique ID
+    function generateId() {
+      return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    }
+
+    // Format relative time
+    function formatRelativeTime(timestamp) {
+      if (!timestamp) return '';
+      const now = Date.now();
+      const diff = now - timestamp;
+      const minutes = Math.floor(diff / 60000);
+      const hours = Math.floor(diff / 3600000);
+      const days = Math.floor(diff / 86400000);
+
+      if (minutes < 1) return 'just now';
+      if (minutes < 60) return `${minutes}m ago`;
+      if (hours < 24) return `${hours}h ago`;
+      if (days === 1) return 'yesterday';
+      if (days < 7) return `${days}d ago`;
+      return `${Math.floor(days / 7)}w ago`;
+    }
+
+    // Show toast notification
+    function showToast(message, duration = 2000) {
+      const toast = document.getElementById('toast');
+      toast.innerHTML = message;
+      toast.classList.add('visible');
+      setTimeout(() => {
+        toast.classList.remove('visible');
+      }, duration);
+    }
+
+    // Get goal by ID
+    function getGoalById(goalId) {
+      return state.monthlyGoals.find(g => g.id === goalId);
+    }
+
+    // Count tasks for a goal
+    function countTasksForGoal(goalId) {
+      let total = 0;
+      let done = 0;
+      ['week', 'today', 'done'].forEach(col => {
+        state.tasks[col].forEach(t => {
+          if (t.goalId === goalId) {
+            total++;
+            if (col === 'done') done++;
+          }
+        });
+      });
+      return { total, done };
+    }
+
+    // Render monthly goals
+    function renderMonthlyGoals() {
+      const container = document.getElementById('monthlyPills');
+      container.innerHTML = '';
+
+      state.monthlyGoals.forEach((goal, index) => {
+        const pill = document.createElement('div');
+        pill.className = 'monthly-pill';
+        if (state.selectedGoalId === goal.id) {
+          pill.classList.add('selected');
+        }
+
+        const textSpan = document.createElement('span');
+        textSpan.textContent = goal.text;
+        pill.appendChild(textSpan);
+
+        const { total, done } = countTasksForGoal(goal.id);
+        if (total > 0) {
+          const progress = document.createElement('span');
+          progress.className = 'goal-progress';
+          progress.textContent = `${done}/${total}`;
+          pill.appendChild(progress);
+        }
+
+        pill.dataset.index = index;
+        pill.onclick = (e) => {
+          e.stopPropagation();
+          if (state.selectedGoalId === goal.id) {
+            state.selectedGoalId = null;
+          } else {
+            state.selectedGoalId = goal.id;
+          }
+          renderAll();
+        };
+
+        // Right-click to delete
+        pill.oncontextmenu = (e) => {
+          e.preventDefault();
+          saveForUndo('delete goal');
+          state.monthlyGoals.splice(index, 1);
+          if (state.selectedGoalId === goal.id) {
+            state.selectedGoalId = null;
+          }
+          saveState();
+          renderMonthlyGoals();
+        };
+
+        container.appendChild(pill);
+      });
+
+      // Add button
+      const addPill = document.createElement('div');
+      addPill.className = 'monthly-pill add-pill';
+      if (state.editingMonthly) {
+        const input = document.createElement('input');
+        input.className = 'monthly-input';
+        input.placeholder = 'New goal...';
+        input.onkeydown = (e) => {
+          if (e.key === 'Enter') {
+            if (input.value.trim()) {
+              saveForUndo('add goal');
+              state.monthlyGoals.push({ id: generateId(), text: input.value.trim() });
+              saveState();
+            }
+            state.editingMonthly = false;
+            renderMonthlyGoals();
+          } else if (e.key === 'Escape') {
+            state.editingMonthly = false;
+            renderMonthlyGoals();
+          }
+        };
+        input.onblur = () => {
+          state.editingMonthly = false;
+          renderMonthlyGoals();
+        };
+        addPill.appendChild(input);
+        setTimeout(() => input.focus(), 0);
+      } else {
+        addPill.innerHTML = `
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 4px; vertical-align: middle;">
+            <path d="M6 2.5V9.5M2.5 6H9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Add goal
+        `;
+        addPill.onclick = () => {
+          state.editingMonthly = true;
+          renderMonthlyGoals();
+        };
+      }
+      container.appendChild(addPill);
+    }
+
+    // Render tasks for a column
+    function renderColumn(column) {
+      const container = document.getElementById(`${column}Tasks`);
+      const countEl = document.getElementById(`${column}Count`);
+
+      container.innerHTML = '';
+      countEl.textContent = state.tasks[column].length;
+
+      if (state.tasks[column].length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.innerHTML = `
+          <div style="margin-bottom: 8px; opacity: 0.5;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin: 0 auto; display: block;">
+              <path d="M9 5H7C5.89543 5 5 5.89543 5 7V19C5 20.1046 5.89543 21 7 21H17C18.1046 21 19 20.1046 19 19V7C19 5.89543 18.1046 5 17 5H15M9 5C9 6.10457 9.89543 7 11 7H13C14.1046 7 15 6.10457 15 5M9 5C9 3.89543 9.89543 3 11 3H13C14.1046 3 15 3.89543 15 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          ${column === 'done' ? 'No completed tasks' : 'No tasks yet'}
+        `;
+        container.appendChild(empty);
+        return;
+      }
+
+      state.tasks[column].forEach((task, index) => {
+        const taskEl = document.createElement('div');
+        taskEl.className = 'task';
+        taskEl.dataset.id = task.id;
+        taskEl.dataset.index = index;
+        taskEl.draggable = true;
+
+        // Filter by selected goal
+        if (state.selectedGoalId && task.goalId !== state.selectedGoalId) {
+          taskEl.classList.add('filtered-out');
+        }
+
+        if (state.focusedColumn === column && state.selectedTaskIndex === index) {
+          taskEl.classList.add('selected');
+        }
+
+        if (state.expandedTaskId === task.id) {
+          taskEl.classList.add('expanded');
+        }
+
+        const content = document.createElement('div');
+        content.className = 'task-content';
+
+        if (task.editing) {
+          const input = document.createElement('textarea');
+          input.className = 'task-input';
+          input.value = task.text;
+          input.rows = 1;
+          let isTabbing = false;
+          input.onkeydown = (e) => {
+            if (e.key === 'Tab' && !e.shiftKey) {
+              // Tab → save and open notes
+              e.preventDefault();
+              const newText = input.value.trim();
+              if (newText) {
+                isTabbing = true;
+                task.text = newText;
+                task.editing = false;
+                task.editingNotes = true;
+                state.expandedTaskId = task.id;
+                saveState();
+                renderColumn(column);
+              }
+            } else if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              finishEditingTask(task, input.value, column, index);
+            } else if (e.key === 'Escape') {
+              task.editing = false;
+              if (!task.text) {
+                state.tasks[column].splice(index, 1);
+              }
+              renderColumn(column);
+            }
+          };
+          input.onblur = (e) => {
+            // Don't trigger blur save if we're tabbing to notes
+            if (!isTabbing) {
+              finishEditingTask(task, input.value, column, index);
+            }
+          };
+          content.appendChild(input);
+          setTimeout(() => {
+            input.focus();
+            input.select();
+          }, 0);
+        } else {
+          const textEl = document.createElement('div');
+          textEl.className = 'task-text';
+          textEl.textContent = task.text;
+          content.appendChild(textEl);
+
+          // Meta info
+          const meta = document.createElement('div');
+          meta.className = 'task-meta';
+
+          if (column === 'done' && task.completedAt) {
+            const timeEl = document.createElement('span');
+            timeEl.className = 'task-time';
+            timeEl.textContent = formatRelativeTime(task.completedAt);
+            meta.appendChild(timeEl);
+          }
+
+          if (task.goalId) {
+            const goal = getGoalById(task.goalId);
+            if (goal) {
+              const goalTag = document.createElement('span');
+              goalTag.className = 'task-goal-tag';
+              goalTag.textContent = goal.text;
+              meta.appendChild(goalTag);
+            }
+          }
+
+          // Snooze badge
+          if (task.snoozedUntil) {
+            const snoozeBadge = document.createElement('span');
+            snoozeBadge.className = 'snooze-badge';
+            snoozeBadge.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Snoozed`;
+            meta.appendChild(snoozeBadge);
+          }
+
+          if (meta.children.length > 0) {
+            content.appendChild(meta);
+          }
+        }
+
+        taskEl.appendChild(content);
+
+        // Timer UI if this task has active timer
+        if (state.activeTimerTaskId === task.id) {
+          taskEl.classList.add('timing');
+          const timerSection = document.createElement('div');
+          timerSection.className = 'task-timer';
+
+          const timerDisplay = document.createElement('span');
+          timerDisplay.className = 'timer-display';
+          timerDisplay.textContent = formatTimer(state.timerSeconds);
+          timerDisplay.id = 'timerDisplay';
+
+          const timerControls = document.createElement('div');
+          timerControls.className = 'timer-controls';
+
+          const stopBtn = document.createElement('button');
+          stopBtn.className = 'timer-btn';
+          stopBtn.textContent = 'Stop';
+          stopBtn.onclick = (e) => {
+            e.stopPropagation();
+            stopTimer();
+          };
+
+          timerControls.appendChild(stopBtn);
+          timerSection.appendChild(timerDisplay);
+          timerSection.appendChild(timerControls);
+          taskEl.appendChild(timerSection);
+        }
+
+        // Apply snoozed style
+        if (task.snoozedUntil) {
+          taskEl.classList.add('snoozed');
+        }
+
+        // Expanded notes section
+        if (state.expandedTaskId === task.id) {
+          const notesSection = document.createElement('div');
+          notesSection.className = 'task-notes';
+
+          if (task.editingNotes) {
+            const notesInput = document.createElement('textarea');
+            notesInput.className = 'task-notes-input';
+            notesInput.value = task.notes || '';
+            notesInput.placeholder = 'Add notes...';
+            notesInput.onkeydown = (e) => {
+              if (e.key === 'Escape') {
+                task.editingNotes = false;
+                renderColumn(column);
+              }
+              e.stopPropagation();
+            };
+            notesInput.onblur = () => {
+              task.notes = notesInput.value;
+              task.editingNotes = false;
+              saveState();
+              renderColumn(column);
+            };
+            notesSection.appendChild(notesInput);
+            setTimeout(() => notesInput.focus(), 0);
+          } else {
+            const notesText = document.createElement('div');
+            notesText.className = 'task-notes-text';
+            notesText.textContent = task.notes || 'No notes. Press Tab to add.';
+            notesText.style.opacity = task.notes ? '1' : '0.5';
+            notesText.onclick = (e) => {
+              e.stopPropagation();
+              task.editingNotes = true;
+              renderColumn(column);
+            };
+            notesSection.appendChild(notesText);
+          }
+
+          // Goal selector
+          if (state.monthlyGoals.length > 0) {
+            const goalSelector = document.createElement('div');
+            goalSelector.style.marginTop = '8px';
+            goalSelector.style.display = 'flex';
+            goalSelector.style.gap = '4px';
+            goalSelector.style.flexWrap = 'wrap';
+
+            state.monthlyGoals.forEach(goal => {
+              const goalBtn = document.createElement('button');
+              goalBtn.style.cssText = `
+                padding: 2px 8px;
+                font-size: 10px;
+                border-radius: 4px;
+                border: 1px solid var(--border);
+                background: ${task.goalId === goal.id ? 'var(--accent)' : 'var(--bg-tertiary)'};
+                color: ${task.goalId === goal.id ? 'var(--accent-foreground)' : 'var(--text-secondary)'};
+                cursor: pointer;
+                font-family: inherit;
+              `;
+              goalBtn.textContent = goal.text;
+              goalBtn.onclick = (e) => {
+                e.stopPropagation();
+                if (task.goalId === goal.id) {
+                  task.goalId = null;
+                } else {
+                  task.goalId = goal.id;
+                }
+                saveState();
+                renderAll();
+              };
+              goalSelector.appendChild(goalBtn);
+            });
+            notesSection.appendChild(goalSelector);
+          }
+
+          taskEl.appendChild(notesSection);
+        }
+
+        taskEl.onclick = (e) => {
+          if (!task.editing) {
+            state.focusedColumn = column;
+            state.selectedTaskIndex = index;
+            renderAll();
+          }
+        };
+
+        taskEl.ondblclick = () => {
+          task.editing = true;
+          renderColumn(column);
+        };
+
+        // Drag events
+        taskEl.ondragstart = (e) => {
+          e.dataTransfer.setData('text/plain', JSON.stringify({ column, index }));
+          taskEl.classList.add('dragging');
+        };
+
+        taskEl.ondragend = () => {
+          taskEl.classList.remove('dragging');
+        };
+
+        container.appendChild(taskEl);
+      });
+
+      // Drop zone
+      container.ondragover = (e) => {
+        e.preventDefault();
+      };
+
+      container.ondrop = (e) => {
+        e.preventDefault();
+        const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+        if (data.column !== column) {
+          saveForUndo('move task');
+          moveTask(data.column, column, data.index);
+        }
+      };
+    }
+
+    function finishEditingTask(task, value, column, index) {
+      const newText = value.trim();
+      if (newText !== task.text) {
+        saveForUndo('edit task');
+      }
+      task.text = newText;
+      task.editing = false;
+      if (!task.text) {
+        state.tasks[column].splice(index, 1);
+        state.selectedTaskIndex = Math.max(0, state.tasks[column].length - 1);
+        if (state.tasks[column].length === 0) state.selectedTaskIndex = -1;
+      }
+      saveState();
+      renderAll();
+    }
+
+    function renderAll() {
+      renderMonthlyGoals();
+      ['week', 'today', 'done'].forEach(renderColumn);
+      updateColumnFocus();
+      updateFocusMode();
+    }
+
+    function updateColumnFocus() {
+      document.querySelectorAll('.column').forEach(col => {
+        col.classList.remove('focused');
+        if (col.dataset.column === state.focusedColumn) {
+          col.classList.add('focused');
+        }
+      });
+    }
+
+    function updateFocusMode() {
+      const weekCol = document.getElementById('colWeek');
+      const doneCol = document.getElementById('colDone');
+      const todayCol = document.getElementById('colToday');
+      const monthlyGoals = document.getElementById('monthlyGoals');
+      const shortcuts = document.getElementById('shortcutsHelp');
+      const indicator = document.getElementById('focusIndicator');
+
+      if (state.focusMode) {
+        weekCol.classList.add('hidden');
+        doneCol.classList.add('hidden');
+        todayCol.classList.add('focus-mode');
+        monthlyGoals.classList.add('hidden');
+        shortcuts.classList.add('hidden');
+        indicator.classList.add('visible');
+        state.focusedColumn = 'today';
+        state.selectedTaskIndex = state.tasks.today.length > 0 ? 0 : -1;
+      } else {
+        weekCol.classList.remove('hidden');
+        doneCol.classList.remove('hidden');
+        todayCol.classList.remove('focus-mode');
+        monthlyGoals.classList.remove('hidden');
+        shortcuts.classList.remove('hidden');
+        indicator.classList.remove('visible');
+      }
+    }
+
+    // Add task
+    function addTask(column, focusEdit = true) {
+      saveForUndo('add task');
+      const task = {
+        id: generateId(),
+        text: '',
+        editing: focusEdit,
+        createdAt: Date.now(),
+        notes: '',
+        goalId: state.selectedGoalId
+      };
+      state.tasks[column].unshift(task);
+      state.focusedColumn = column;
+      state.selectedTaskIndex = 0;
+      saveState();
+      renderColumn(column);
+      updateColumnFocus();
+    }
+
+    // Move task between columns
+    function moveTask(fromColumn, toColumn, index) {
+      const task = state.tasks[fromColumn].splice(index, 1)[0];
+      if (task) {
+        task.editing = false;
+        delete task.snoozedUntil; // Clear snooze when moving
+        if (toColumn === 'done') {
+          task.completedAt = Date.now();
+          playSound('done');
+        } else {
+          delete task.completedAt;
+          playSound('move');
+        }
+        state.tasks[toColumn].unshift(task);
+        state.focusedColumn = toColumn;
+        state.selectedTaskIndex = 0;
+        saveState();
+        renderAll();
+      }
+    }
+
+    // Reorder task within column
+    function reorderTask(column, fromIndex, toIndex) {
+      if (toIndex < 0 || toIndex >= state.tasks[column].length) return;
+      saveForUndo('reorder task');
+      const task = state.tasks[column].splice(fromIndex, 1)[0];
+      state.tasks[column].splice(toIndex, 0, task);
+      state.selectedTaskIndex = toIndex;
+      saveState();
+      renderColumn(column);
+    }
+
+    // Delete task
+    function deleteTask(column, index) {
+      saveForUndo('delete task');
+      state.tasks[column].splice(index, 1);
+      if (state.selectedTaskIndex >= state.tasks[column].length) {
+        state.selectedTaskIndex = Math.max(0, state.tasks[column].length - 1);
+      }
+      if (state.tasks[column].length === 0) {
+        state.selectedTaskIndex = -1;
+      }
+      saveState();
+      renderColumn(column);
+    }
+
+    // Toggle task expansion
+    function toggleTaskExpansion(taskId) {
+      if (state.expandedTaskId === taskId) {
+        state.expandedTaskId = null;
+      } else {
+        state.expandedTaskId = taskId;
+      }
+      renderAll();
+    }
+
+    // Search functionality
+    let searchResults = [];
+    let searchSelectedIndex = 0;
+
+    function openSearch() {
+      const overlay = document.getElementById('searchOverlay');
+      const input = document.getElementById('searchInput');
+      overlay.classList.add('visible');
+      input.value = '';
+      input.focus();
+      searchResults = [];
+      searchSelectedIndex = 0;
+      renderSearchResults();
+    }
+
+    function closeSearch() {
+      const overlay = document.getElementById('searchOverlay');
+      overlay.classList.remove('visible');
+    }
+
+    function performSearch(query) {
+      searchResults = [];
+      if (!query.trim()) {
+        renderSearchResults();
+        return;
+      }
+      const q = query.toLowerCase();
+      ['week', 'today', 'done'].forEach(column => {
+        state.tasks[column].forEach((task, index) => {
+          if (task.text.toLowerCase().includes(q) ||
+              (task.notes && task.notes.toLowerCase().includes(q))) {
+            searchResults.push({ column, index, task });
+          }
+        });
+      });
+      searchSelectedIndex = 0;
+      renderSearchResults();
+    }
+
+    function renderSearchResults() {
+      const container = document.getElementById('searchResults');
+      container.innerHTML = '';
+
+      if (searchResults.length === 0) {
+        const input = document.getElementById('searchInput');
+        if (input.value.trim()) {
+          container.innerHTML = '<div class="search-empty">No tasks found</div>';
+        } else {
+          container.innerHTML = '<div class="search-empty">Start typing to search...</div>';
+        }
+        return;
+      }
+
+      searchResults.forEach((result, i) => {
+        const el = document.createElement('div');
+        el.className = 'search-result';
+        if (i === searchSelectedIndex) el.classList.add('selected');
+
+        const colLabel = document.createElement('span');
+        colLabel.className = 'search-result-column';
+        colLabel.textContent = result.column === 'week' ? 'Week' : result.column === 'today' ? 'Today' : 'Done';
+
+        const text = document.createElement('span');
+        text.className = 'search-result-text';
+        text.textContent = result.task.text;
+
+        el.appendChild(colLabel);
+        el.appendChild(text);
+
+        el.onclick = () => {
+          selectSearchResult(result);
+        };
+
+        container.appendChild(el);
+      });
+    }
+
+    function selectSearchResult(result) {
+      closeSearch();
+      state.focusedColumn = result.column;
+      state.selectedTaskIndex = result.index;
+      renderAll();
+    }
+
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      performSearch(e.target.value);
+    });
+
+    document.getElementById('searchInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeSearch();
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        searchSelectedIndex = Math.min(searchSelectedIndex + 1, searchResults.length - 1);
+        renderSearchResults();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        searchSelectedIndex = Math.max(searchSelectedIndex - 1, 0);
+        renderSearchResults();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (searchResults[searchSelectedIndex]) {
+          selectSearchResult(searchResults[searchSelectedIndex]);
+        }
+      }
+    });
+
+    document.getElementById('searchOverlay').addEventListener('click', (e) => {
+      if (e.target.id === 'searchOverlay') {
+        closeSearch();
+      }
+    });
+
+    // Carryover functionality
+    let carryoverTaskIds = new Set();
+
+    function checkDailyCarryover() {
+      const today = new Date().toDateString();
+      if (state.lastVisitDate && state.lastVisitDate !== today) {
+        // Check if there are tasks from "today" column that weren't completed
+        const oldTodayTasks = state.tasks.today.filter(t => {
+          return t.createdAt && new Date(t.createdAt).toDateString() !== today;
+        });
+
+        if (oldTodayTasks.length > 0) {
+          showCarryoverModal(oldTodayTasks);
+        }
+      }
+      state.lastVisitDate = today;
+      saveState();
+    }
+
+    function showCarryoverModal(tasks) {
+      const container = document.getElementById('carryoverTasks');
+      container.innerHTML = '';
+      carryoverTaskIds = new Set(tasks.map(t => t.id));
+
+      tasks.forEach(task => {
+        const el = document.createElement('div');
+        el.className = 'modal-task';
+
+        const checkbox = document.createElement('div');
+        checkbox.className = 'modal-task-checkbox checked';
+        checkbox.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+        checkbox.onclick = () => {
+          checkbox.classList.toggle('checked');
+          if (carryoverTaskIds.has(task.id)) {
+            carryoverTaskIds.delete(task.id);
+          } else {
+            carryoverTaskIds.add(task.id);
+          }
+        };
+
+        const text = document.createElement('span');
+        text.className = 'modal-task-text';
+        text.textContent = task.text;
+
+        el.appendChild(checkbox);
+        el.appendChild(text);
+        container.appendChild(el);
+      });
+
+      document.getElementById('carryoverModal').classList.add('visible');
+    }
+
+    function carryoverKeepAll() {
+      document.getElementById('carryoverModal').classList.remove('visible');
+    }
+
+    function carryoverMoveSelected() {
+      saveForUndo('carryover tasks');
+      carryoverTaskIds.forEach(id => {
+        const index = state.tasks.today.findIndex(t => t.id === id);
+        if (index !== -1) {
+          const task = state.tasks.today.splice(index, 1)[0];
+          state.tasks.week.unshift(task);
+        }
+      });
+      saveState();
+      renderAll();
+      document.getElementById('carryoverModal').classList.remove('visible');
+    }
+
+    // Weekly review
+    function checkWeeklyReview() {
+      const today = new Date();
+      if (today.getDay() === 1) { // Monday
+        const lastReview = localStorage.getItem('lastWeeklyReview');
+        const thisWeek = getWeekNumber(today);
+        if (lastReview !== thisWeek) {
+          // Don't auto-show, let user trigger with ⌘R
+        }
+      }
+    }
+
+    function getWeekNumber(date) {
+      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+      return `${d.getUTCFullYear()}-W${weekNo}`;
+    }
+
+    function showWeeklyReview() {
+      const doneList = document.getElementById('weeklyDoneList');
+      const carryList = document.getElementById('weeklyCarryList');
+
+      doneList.innerHTML = '';
+      carryList.innerHTML = '';
+
+      if (state.tasks.done.length === 0) {
+        doneList.innerHTML = '<div style="color: var(--text-muted); font-size: 13px;">No completed tasks</div>';
+      } else {
+        state.tasks.done.forEach(task => {
+          const el = document.createElement('div');
+          el.style.cssText = 'padding: 6px 0; font-size: 13px; color: var(--text-secondary);';
+          el.innerHTML = `<span style="text-decoration: line-through;">${task.text}</span> <span style="color: var(--text-muted); font-size: 11px;">${formatRelativeTime(task.completedAt)}</span>`;
+          doneList.appendChild(el);
+        });
+      }
+
+      const carryingOver = [...state.tasks.week, ...state.tasks.today];
+      if (carryingOver.length === 0) {
+        carryList.innerHTML = '<div style="color: var(--text-muted); font-size: 13px;">Nothing carrying over</div>';
+      } else {
+        carryingOver.forEach(task => {
+          const el = document.createElement('div');
+          el.style.cssText = 'padding: 6px 0; font-size: 13px;';
+          el.textContent = task.text;
+          carryList.appendChild(el);
+        });
+      }
+
+      document.getElementById('weeklyReviewModal').classList.add('visible');
+    }
+
+    function closeWeeklyReview() {
+      document.getElementById('weeklyReviewModal').classList.remove('visible');
+    }
+
+    function archiveAndCloseReview() {
+      saveForUndo('archive done tasks');
+      state.tasks.done = [];
+      localStorage.setItem('lastWeeklyReview', getWeekNumber(new Date()));
+      saveState();
+      renderAll();
+      closeWeeklyReview();
+      playSound('whoosh');
+      showToast('Done tasks archived');
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      const isMeta = e.metaKey || e.ctrlKey;
+      const isShift = e.shiftKey;
+      const column = state.focusedColumn;
+      const tasks = state.tasks[column];
+      const isEditing = document.activeElement.tagName === 'TEXTAREA' ||
+                        document.activeElement.tagName === 'INPUT';
+      const searchOpen = document.getElementById('searchOverlay').classList.contains('visible');
+      const modalOpen = document.querySelector('.modal-overlay.visible');
+
+      // Close modals with Escape
+      if (e.key === 'Escape') {
+        if (searchOpen) {
+          closeSearch();
+          return;
+        }
+        if (modalOpen) {
+          modalOpen.classList.remove('visible');
+          return;
+        }
+      }
+
+      // Don't process other shortcuts if modal or search is open
+      if (searchOpen || modalOpen) return;
+
+      // Undo
+      if (isMeta && e.key === 'z' && !isShift) {
+        e.preventDefault();
+        undo();
+        return;
+      }
+
+      // Global shortcuts
+      if (isMeta && e.key === 'n') {
+        e.preventDefault();
+        addTask('week');
+        return;
+      }
+
+      if (isMeta && e.key === 't') {
+        e.preventDefault();
+        addTask('today');
+        return;
+      }
+
+      if (isMeta && e.key === 'm') {
+        e.preventDefault();
+        state.editingMonthly = true;
+        renderMonthlyGoals();
+        return;
+      }
+
+      // Focus mode toggle
+      if (isMeta && e.key === '.') {
+        e.preventDefault();
+        state.focusMode = !state.focusMode;
+        renderAll();
+        showToast(state.focusMode ? 'Focus mode on' : 'Focus mode off');
+        return;
+      }
+
+      // Weekly review
+      if (isMeta && e.key === 'r') {
+        e.preventDefault();
+        showWeeklyReview();
+        return;
+      }
+
+      // Open in editor
+      if (isMeta && e.key === 'e') {
+        e.preventDefault();
+        openInEditor();
+        return;
+      }
+
+      // Search
+      if (e.key === '/' && !isEditing) {
+        e.preventDefault();
+        openSearch();
+        return;
+      }
+
+      if (isMeta && e.key === 'f') {
+        e.preventDefault();
+        openSearch();
+        return;
+      }
+
+      // Don't handle other shortcuts while editing
+      if (isEditing) return;
+
+      // Column switching
+      if (e.key === '1' && !state.focusMode) {
+        e.preventDefault();
+        state.focusedColumn = 'week';
+        state.selectedTaskIndex = state.tasks.week.length > 0 ? 0 : -1;
+        renderAll();
+        return;
+      }
+
+      if (e.key === '2') {
+        e.preventDefault();
+        state.focusedColumn = 'today';
+        state.selectedTaskIndex = state.tasks.today.length > 0 ? 0 : -1;
+        renderAll();
+        return;
+      }
+
+      if (e.key === '3' && !state.focusMode) {
+        e.preventDefault();
+        state.focusedColumn = 'done';
+        state.selectedTaskIndex = state.tasks.done.length > 0 ? 0 : -1;
+        renderAll();
+        return;
+      }
+
+      // Reorder with Shift+J/K
+      if (isShift && (e.key === 'J' || e.key === 'j') && state.selectedTaskIndex >= 0) {
+        e.preventDefault();
+        reorderTask(column, state.selectedTaskIndex, state.selectedTaskIndex + 1);
+        return;
+      }
+
+      if (isShift && (e.key === 'K' || e.key === 'k') && state.selectedTaskIndex >= 0) {
+        e.preventDefault();
+        reorderTask(column, state.selectedTaskIndex, state.selectedTaskIndex - 1);
+        return;
+      }
+
+      // Navigation
+      if (e.key === 'j' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (tasks.length > 0) {
+          const newIndex = Math.min(state.selectedTaskIndex + 1, tasks.length - 1);
+          if (newIndex !== state.selectedTaskIndex) {
+            state.selectedTaskIndex = newIndex;
+            state.expandedTaskId = null;
+            playSound('click');
+            renderAll();
+          }
+        }
+        return;
+      }
+
+      if (e.key === 'k' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (tasks.length > 0) {
+          const newIndex = Math.max(state.selectedTaskIndex - 1, 0);
+          if (newIndex !== state.selectedTaskIndex) {
+            state.selectedTaskIndex = newIndex;
+            state.expandedTaskId = null;
+            playSound('click');
+            renderAll();
+          }
+        }
+        return;
+      }
+
+      // Move task left/right (including from Done)
+      if ((e.key === 'h' || e.key === 'ArrowLeft') && state.selectedTaskIndex >= 0 && !state.focusMode) {
+        e.preventDefault();
+        const columns = ['week', 'today', 'done'];
+        const colIndex = columns.indexOf(column);
+        if (colIndex > 0) {
+          saveForUndo('move task');
+          moveTask(column, columns[colIndex - 1], state.selectedTaskIndex);
+        }
+        return;
+      }
+
+      if ((e.key === 'l' || e.key === 'ArrowRight') && state.selectedTaskIndex >= 0 && !state.focusMode) {
+        e.preventDefault();
+        const columns = ['week', 'today', 'done'];
+        const colIndex = columns.indexOf(column);
+        if (colIndex < 2) {
+          saveForUndo('move task');
+          moveTask(column, columns[colIndex + 1], state.selectedTaskIndex);
+        }
+        return;
+      }
+
+      // Expand/collapse task with Tab
+      if (e.key === 'Tab' && state.selectedTaskIndex >= 0) {
+        e.preventDefault();
+        const task = tasks[state.selectedTaskIndex];
+        if (task) {
+          toggleTaskExpansion(task.id);
+        }
+        return;
+      }
+
+      // Edit task
+      if (e.key === 'Enter' && state.selectedTaskIndex >= 0) {
+        e.preventDefault();
+        const task = tasks[state.selectedTaskIndex];
+        if (task) {
+          task.editing = true;
+          renderColumn(column);
+        }
+        return;
+      }
+
+      // Delete task
+      if ((e.key === 'Backspace' || e.key === 'Delete') && state.selectedTaskIndex >= 0) {
+        e.preventDefault();
+        deleteTask(column, state.selectedTaskIndex);
+        return;
+      }
+
+      // Quick add with 'a'
+      if (e.key === 'a') {
+        e.preventDefault();
+        addTask(column);
+        return;
+      }
+
+      // Escape - deselect
+      if (e.key === 'Escape') {
+        state.selectedTaskIndex = -1;
+        state.expandedTaskId = null;
+        state.selectedGoalId = null;
+        renderAll();
+        return;
+      }
+
+      // X to restore from done (alias for H when in done column)
+      if (e.key === 'x' && column === 'done' && state.selectedTaskIndex >= 0) {
+        e.preventDefault();
+        saveForUndo('restore task');
+        moveTask('done', 'today', state.selectedTaskIndex);
+        return;
+      }
+
+      // Space to start/stop timer (Monk Mode)
+      if (e.key === ' ' && state.selectedTaskIndex >= 0) {
+        e.preventDefault();
+        const task = tasks[state.selectedTaskIndex];
+        if (task) {
+          if (state.activeTimerTaskId === task.id) {
+            stopTimer();
+            showToast('Timer stopped');
+          } else {
+            startTimer(task.id);
+            showToast('25 min timer started - Focus!');
+          }
+        }
+        return;
+      }
+
+      // S to snooze task (Today column only)
+      if (e.key === 's' && column === 'today' && state.selectedTaskIndex >= 0) {
+        e.preventDefault();
+        snoozeTask(column, state.selectedTaskIndex);
+        return;
+      }
+
+      // Cmd+Shift+C for standup report
+      if (isMeta && isShift && e.key === 'C') {
+        e.preventDefault();
+        copyStandupReport();
+        return;
+      }
+    });
+
+    // Auto-archive old done tasks (older than 7 days)
+    function archiveOldTasks() {
+      const oneWeekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+      const before = state.tasks.done.length;
+      state.tasks.done = state.tasks.done.filter(t =>
+        !t.completedAt || t.completedAt > oneWeekAgo
+      );
+      if (state.tasks.done.length < before) {
+        saveState();
+      }
+    }
+
+    // Timer functions
+    function startTimer(taskId) {
+      if (state.activeTimerTaskId) {
+        stopTimer();
+      }
+      state.activeTimerTaskId = taskId;
+      state.timerSeconds = 25 * 60; // 25 minutes
+      updateTimerDisplay();
+      timerInterval = setInterval(() => {
+        state.timerSeconds--;
+        updateTimerDisplay();
+        if (state.timerSeconds <= 0) {
+          timerComplete();
+        }
+      }, 1000);
+      renderAll();
+    }
+
+    function stopTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      state.activeTimerTaskId = null;
+      state.timerSeconds = 0;
+      updateWindowTitle('Today');
+      renderAll();
+    }
+
+    function updateTimerDisplay() {
+      const mins = Math.floor(state.timerSeconds / 60);
+      const secs = state.timerSeconds % 60;
+      const timeStr = `${mins}:${secs.toString().padStart(2, '0')}`;
+
+      // Find task and update window title
+      let taskText = '';
+      ['week', 'today', 'done'].forEach(col => {
+        const task = state.tasks[col].find(t => t.id === state.activeTimerTaskId);
+        if (task) taskText = task.text;
+      });
+
+      if (taskText) {
+        const shortText = taskText.length > 30 ? taskText.substring(0, 30) + '...' : taskText;
+        updateWindowTitle(`${timeStr} - ${shortText}`);
+      }
+    }
+
+    function updateWindowTitle(title) {
+      if (typeof require !== 'undefined') {
+        const { ipcRenderer } = require('electron');
+        ipcRenderer.send('update-title', title);
+      }
+      document.title = title;
+    }
+
+    function timerComplete() {
+      stopTimer();
+      playSound('timer');
+      showToast('Timer complete! Take a break.');
+    }
+
+    function formatTimer(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    // Snooze function
+    function snoozeTask(column, index) {
+      if (column !== 'today') return;
+
+      saveForUndo('snooze task');
+      const task = state.tasks[column][index];
+      if (task) {
+        // Set snooze until tomorrow
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(9, 0, 0, 0);
+        task.snoozedUntil = tomorrow.getTime();
+        saveState();
+        renderAll();
+        playSound('whoosh');
+        showToast('Task snoozed until tomorrow');
+      }
+    }
+
+    // Check and unsnooze tasks
+    function checkSnoozedTasks() {
+      const now = Date.now();
+      let changed = false;
+      state.tasks.today.forEach(task => {
+        if (task.snoozedUntil && task.snoozedUntil <= now) {
+          delete task.snoozedUntil;
+          changed = true;
+        }
+      });
+      if (changed) {
+        saveState();
+        renderAll();
+      }
+    }
+
+    // Standup mode - copy progress to clipboard
+    function copyStandupReport() {
+      const done = state.tasks.done.map(t => `✅ ${t.text}`);
+      const today = state.tasks.today.filter(t => !t.snoozedUntil).map(t => `🚧 ${t.text}`);
+
+      let report = '**Today\'s Progress**\n\n';
+      if (done.length > 0) {
+        report += done.join('\n') + '\n';
+      }
+      if (today.length > 0) {
+        report += '\n' + today.join('\n');
+      }
+
+      if (done.length === 0 && today.length === 0) {
+        report = 'No tasks to report.';
+      }
+
+      navigator.clipboard.writeText(report).then(() => {
+        showToast('Progress copied to clipboard!');
+      });
+    }
+
+    // Handle IPC from main process
+    if (typeof require !== 'undefined') {
+      const { ipcRenderer } = require('electron');
+
+      // Initial load from file
+      ipcRenderer.on('initial-load', (event, data) => {
+        tasksFilePath = data.filePath;
+        loadFromMarkdown(data.content);
+        renderAll();
+        console.log('Loaded from:', tasksFilePath);
+      });
+
+      // File changed externally
+      ipcRenderer.on('file-changed', (event, content) => {
+        loadFromMarkdown(content);
+        renderAll();
+        showToast('Reloaded from file');
+      });
+
+      ipcRenderer.on('quick-capture', () => {
+        addTask('week');
+      });
+
+      ipcRenderer.on('ghost-capture-add', (event, taskText) => {
+        saveForUndo('add task');
+        const task = {
+          id: generateId(),
+          text: taskText,
+          editing: false,
+          createdAt: Date.now(),
+          notes: '',
+          goalId: null
+        };
+        state.tasks.week.unshift(task);
+        saveState();
+        renderAll();
+        playSound('click');
+        showToast('Task added to This Week');
+      });
+    }
+
+    // Open file in editor (Cmd+E)
+    function openInEditor() {
+      if (typeof require !== 'undefined') {
+        const { ipcRenderer } = require('electron');
+        ipcRenderer.send('open-file');
+        showToast('Opening in editor...');
+      }
+    }
+
+    // Initialize
+    loadState();
+    archiveOldTasks();
+    checkSnoozedTasks();
+    renderAll();
+
+    // Check snoozed tasks periodically
+    setInterval(checkSnoozedTasks, 60000);
+
+    // Check for daily carryover after a short delay
+    setTimeout(() => {
+      checkDailyCarryover();
+      checkWeeklyReview();
+    }, 500);
+  </script>
+</body>
+</html>

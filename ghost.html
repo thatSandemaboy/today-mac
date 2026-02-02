@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Quick Capture</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #ffffff;
+      --text: #18181b;
+      --border: #e4e4e7;
+      --accent: #6366f1;
+      --placeholder: #a1a1aa;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #18181b;
+        --text: #fafafa;
+        --border: #3f3f46;
+        --accent: #818cf8;
+        --placeholder: #71717a;
+      }
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: transparent;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .ghost-container {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 4px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .ghost-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--accent), #a855f7);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-left: 8px;
+    }
+
+    .ghost-icon svg {
+      width: 20px;
+      height: 20px;
+      color: white;
+    }
+
+    .ghost-input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text);
+      background: transparent;
+      padding: 12px 0;
+      font-family: inherit;
+    }
+
+    .ghost-input::placeholder {
+      color: var(--placeholder);
+    }
+
+    .ghost-hint {
+      font-size: 11px;
+      color: var(--placeholder);
+      padding-right: 16px;
+      white-space: nowrap;
+    }
+
+    kbd {
+      background: var(--border);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-family: inherit;
+    }
+  </style>
+</head>
+<body>
+  <div class="ghost-container">
+    <div class="ghost-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+    </div>
+    <input
+      type="text"
+      class="ghost-input"
+      id="ghostInput"
+      placeholder="Add to This Week..."
+      autofocus
+    >
+    <span class="ghost-hint"><kbd>↵</kbd> add <kbd>esc</kbd> cancel</span>
+  </div>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+    const input = document.getElementById('ghostInput');
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const text = input.value.trim();
+        if (text) {
+          ipcRenderer.send('ghost-capture-submit', text);
+        } else {
+          ipcRenderer.send('ghost-capture-cancel');
+        }
+      } else if (e.key === 'Escape') {
+        ipcRenderer.send('ghost-capture-cancel');
+      }
+    });
+
+    // Auto-focus
+    setTimeout(() => input.focus(), 50);
+  </script>
+</body>
+</html>

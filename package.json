@@ -1,0 +1,38 @@
+{
+  "name": "today-mac",
+  "version": "1.0.0",
+  "description": "A keyboard-first Kanban to-do app for Mac",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --mac",
+    "pack": "electron-builder --dir"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.today.mac",
+    "productName": "Today",
+    "files": [
+      "main.js",
+      "index.html",
+      "ghost.html"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": ["dmg", "zip"],
+      "darkModeSupport": true
+    },
+    "dmg": {
+      "title": "Today",
+      "contents": [
+        { "x": 130, "y": 220 },
+        { "x": 410, "y": 220, "type": "link", "path": "/Applications" }
+      ]
+    }
+  }
+}
