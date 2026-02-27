@@ -1,4 +1,4 @@
-const { app, BrowserWindow, globalShortcut, nativeTheme, ipcMain } = require('electron');
+const { app, BrowserWindow, globalShortcut, nativeTheme, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -6,16 +6,54 @@ const os = require('os');
 let mainWindow;
 let ghostWindow;
 
-// Markdown file path
-const DATA_DIR = path.join(os.homedir(), '.today');
-const TASKS_FILE = path.join(DATA_DIR, 'today.md');
+// Settings directory (always ~/.today/)
+const SETTINGS_DIR = path.join(os.homedir(), '.today');
+const SETTINGS_FILE = path.join(SETTINGS_DIR, 'settings.json');
 
-// Ensure data directory and file exist
-function ensureDataFile() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+// Settings object
+let settings = { tasksFilePath: null, setupComplete: false };
+let needsSetup = false;
+
+function loadSettings() {
+  if (!fs.existsSync(SETTINGS_DIR)) {
+    fs.mkdirSync(SETTINGS_DIR, { recursive: true });
   }
-  if (!fs.existsSync(TASKS_FILE)) {
+  if (fs.existsSync(SETTINGS_FILE)) {
+    try {
+      settings = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'));
+    } catch (e) {
+      settings = { tasksFilePath: null, setupComplete: false };
+    }
+  }
+  // Check if setup is needed
+  if (!settings.setupComplete || !settings.tasksFilePath) {
+    needsSetup = true;
+  } else if (!fs.existsSync(settings.tasksFilePath)) {
+    // Returning user but file is missing — re-run setup
+    needsSetup = true;
+  } else {
+    needsSetup = false;
+  }
+}
+
+function saveSettings() {
+  if (!fs.existsSync(SETTINGS_DIR)) {
+    fs.mkdirSync(SETTINGS_DIR, { recursive: true });
+  }
+  fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2), 'utf8');
+}
+
+function getTasksFile() {
+  return settings.tasksFilePath;
+}
+
+// Ensure data directory and file exist at given path
+function ensureDataFile(filePath) {
+  const dir = path.dirname(filePath);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  if (!fs.existsSync(filePath)) {
     const defaultContent = `# Monthly Goals
 
 # This Week
@@ -24,21 +62,22 @@ function ensureDataFile() {
 
 # Done
 `;
-    fs.writeFileSync(TASKS_FILE, defaultContent, 'utf8');
+    fs.writeFileSync(filePath, defaultContent, 'utf8');
   }
-  return TASKS_FILE;
 }
 
 // Read tasks file
 function readTasksFile() {
-  ensureDataFile();
-  return fs.readFileSync(TASKS_FILE, 'utf8');
+  const filePath = getTasksFile();
+  ensureDataFile(filePath);
+  return fs.readFileSync(filePath, 'utf8');
 }
 
 // Write tasks file
 function writeTasksFile(content) {
-  ensureDataFile();
-  fs.writeFileSync(TASKS_FILE, content, 'utf8');
+  const filePath = getTasksFile();
+  ensureDataFile(filePath);
+  fs.writeFileSync(filePath, content, 'utf8');
 }
 
 // File watcher
@@ -50,7 +89,10 @@ function setupFileWatcher() {
     fileWatcher.close();
   }
 
-  fileWatcher = fs.watch(TASKS_FILE, (eventType) => {
+  const filePath = getTasksFile();
+  if (!filePath || !fs.existsSync(filePath)) return;
+
+  fileWatcher = fs.watch(filePath, (eventType) => {
     // Ignore changes we just made (within 1 second)
     if (Date.now() - lastWriteTime < 1000) return;
 
@@ -62,7 +104,7 @@ function setupFileWatcher() {
 }
 
 function createWindow() {
-  ensureDataFile();
+  loadSettings();
 
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -71,10 +113,7 @@ function createWindow() {
     minHeight: 600,
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 20, y: 19 },
-    vibrancy: 'under-window',
-    visualEffectState: 'active',
-    backgroundColor: '#00000000',
-    transparent: true,
+    backgroundColor: '#ffffff',
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false
@@ -85,12 +124,14 @@ function createWindow() {
 
   // Send initial file content when ready
   mainWindow.webContents.on('did-finish-load', () => {
-    const content = readTasksFile();
-    mainWindow.webContents.send('initial-load', { content, filePath: TASKS_FILE });
+    if (needsSetup) {
+      mainWindow.webContents.send('initial-load', { needsSetup: true });
+    } else {
+      const content = readTasksFile();
+      mainWindow.webContents.send('initial-load', { content, filePath: getTasksFile() });
+      setupFileWatcher();
+    }
   });
-
-  // Setup file watcher
-  setupFileWatcher();
 
   // Handle theme changes
   nativeTheme.on('updated', () => {
@@ -194,7 +235,31 @@ ipcMain.on('update-title', (event, title) => {
 // Open file in default editor
 ipcMain.on('open-file', () => {
   const { shell } = require('electron');
-  shell.openPath(TASKS_FILE);
+  shell.openPath(getTasksFile());
+});
+
+// Choose folder for tasks file
+ipcMain.handle('choose-folder', async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openDirectory', 'createDirectory'],
+    title: 'Choose where to save your tasks'
+  });
+  if (result.canceled || result.filePaths.length === 0) return null;
+  const folder = result.filePaths[0];
+  const fileExists = fs.existsSync(path.join(folder, 'today.md'));
+  return { folder, fileExists };
+});
+
+// Complete setup
+ipcMain.handle('complete-setup', async (event, { folderPath }) => {
+  settings.tasksFilePath = path.join(folderPath, 'today.md');
+  settings.setupComplete = true;
+  saveSettings();
+  ensureDataFile(settings.tasksFilePath);
+  needsSetup = false;
+  const content = fs.readFileSync(settings.tasksFilePath, 'utf8');
+  setupFileWatcher();
+  return { content, filePath: settings.tasksFilePath };
 });
 
 app.whenReady().then(createWindow);
