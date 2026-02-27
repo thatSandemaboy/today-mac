@@ -2,7 +2,7 @@
 
 A keyboard-first Kanban to-do app for Mac that respects how you actually think about work.
 
-![Today App](https://img.shields.io/badge/platform-macOS-lightgrey) ![Electron](https://img.shields.io/badge/electron-28.0.0-blue)
+![Today App](https://img.shields.io/badge/platform-macOS-lightgrey) ![Electron](https://img.shields.io/badge/electron-28.0.0-blue) ![Version](https://img.shields.io/badge/version-2.0.0-green)
 
 ## Philosophy
 
@@ -27,19 +27,24 @@ Plus **Monthly Goals** always visible at the top — your north star that keeps 
 - **No infinite backlogs** — If it's not happening this week, it doesn't belong here
 - **Daily intention-setting** — Each morning, pull tasks from "This Week" into "Today"
 - **Visible progress** — Done items show *when* you completed them
-- **Plain text storage** — Your tasks live in `~/.today/today.md`, editable anywhere
+- **Plain text storage** — Your tasks live in a `today.md` file you control, editable anywhere
 
 ## Features
 
+- **Guided setup** — Choose where your tasks file lives on first launch (Obsidian vault, iCloud, anywhere)
 - **Keyboard-first** — Vim-style navigation, shortcuts for everything
 - **Ghost Capture** — Global hotkey (`Cmd+Option+N`) to capture tasks from anywhere
-- **Monk Mode** — Built-in 25-minute focus timer
+- **Focus Mode** — Built-in 25-minute focus timer with a single-task view
 - **Standup Mode** — One-key copy of yesterday's done + today's plan
-- **Native Mac feel** — Vibrancy, dark mode, traffic light positioning
+- **Task linking** — Connect related tasks across columns
+- **Search** — Fuzzy search across all tasks with `/`
+- **Daily carryover** — Prompts you each morning to review yesterday's unfinished tasks
+- **Weekly review** — End-of-week summary with archive option
+- **Native Mac feel** — Dark mode, traffic light positioning, minimal design
 - **Plain Markdown backend** — Edit your tasks in any text editor
 - **Tactile sounds** — Subtle audio feedback (toggleable)
 
-## Installation
+## Getting Started
 
 ### Option 1: Download Release
 
@@ -50,19 +55,20 @@ Plus **Monthly Goals** always visible at the top — your north star that keeps 
 ### Option 2: Build from Source
 
 ```bash
-# Clone the repo
 git clone https://github.com/thatSandemaboy/today-mac.git
 cd today-mac
-
-# Install dependencies
 npm install
-
-# Run in development
 npm start
-
-# Build for distribution
-npm run build
 ```
+
+### First Run
+
+On first launch, Today guides you through a quick setup:
+
+1. **Choose a location** for your `today.md` file — pick any folder (your Obsidian vault, iCloud Drive, Dropbox, or use the default `~/.today/`)
+2. **Add your first task** — or skip to start with an empty board
+
+Your choice is saved in `~/.today/settings.json`. If the file is ever moved or deleted, setup will re-appear so you can pick a new location.
 
 ## Keyboard Shortcuts
 
@@ -71,42 +77,52 @@ npm run build
 |-----|--------|
 | `j` / `↓` | Move down |
 | `k` / `↑` | Move up |
-| `h` / `←` | Move to column left |
-| `l` / `→` | Move to column right |
-| `1` `2` `3` | Jump to column |
-| `g` | Jump to goals |
+| `h` | Promote task (move left: today → week) |
+| `l` | Demote task (move right: week → today → done) |
+| `1` `2` `3` | Jump to section (Today, This Week, Done) |
+| `g` | Jump to Monthly Goals |
 
-### Actions
+### Task Management
 | Key | Action |
 |-----|--------|
-| `n` | New task in current column |
+| `a` | Add task to current section |
 | `Enter` | Edit selected task |
-| `Tab` (while editing) | Save and add notes |
-| `d` | Mark as done |
+| `Tab` (editing) | Save text and edit notes |
 | `Backspace` | Delete task |
-| `Space` | Move task right (week→today→done) |
+| `Space` | Move task right (week → today → done) |
 | `Shift+Space` | Move task left |
+| `z` | Snooze task (hide until tomorrow) |
+| `u` / `Cmd+Z` | Undo |
 
 ### Features
 | Key | Action |
 |-----|--------|
+| `/` | Search tasks |
+| `Cmd+.` | Focus mode (single-task + timer) |
+| `Cmd+M` | Link mode (connect related tasks) |
+| `Cmd+N` | Quick add to This Week |
 | `Cmd+Shift+Space` | Quick capture (brings app to front) |
 | `Cmd+Option+N` | Ghost capture (floating input from anywhere) |
-| `m` | Toggle Monk Mode (25-min timer) |
-| `s` | Standup mode (copy progress to clipboard) |
-| `o` | Open markdown file in default editor |
-| `u` | Undo |
-| `Cmd+z` | Undo |
+| `Cmd+E` | Open markdown file in default editor |
+| `Cmd+Shift+M` | Toggle Monthly Goals |
+| `?` | Show all shortcuts |
 
-### Task Features
-| Key | Action |
-|-----|--------|
-| `z` | Snooze task (hide until tomorrow) |
-| Numbers in edit | Add time estimate (e.g., "Write report 2h") |
+## Data Storage
 
-## Data Format
+### Settings
 
-Your tasks are stored in `~/.today/today.md` as plain Markdown:
+App settings live at `~/.today/settings.json`:
+
+```json
+{
+  "tasksFilePath": "/Users/you/Documents/today.md",
+  "setupComplete": true
+}
+```
+
+### Task File
+
+Your tasks are stored as plain Markdown at the location you chose during setup:
 
 ```markdown
 # Monthly Goals
@@ -129,23 +145,31 @@ Your tasks are stored in `~/.today/today.md` as plain Markdown:
 ```
 
 ### Task Syntax
-- Basic task: `- Task name`
-- With time estimate: `- Task name 2h` or `- Task name 30m`
-- With notes: Indented `> Note text` on next line
-- Linked to goal: Indented `Goal: Goal name` on next line
-- Completed: `- ~~Task name~~ *time ago*`
+| Syntax | Meaning |
+|--------|---------|
+| `- Task name` | Basic task |
+| `- Task name 2h` | Task with time estimate |
+| `- Task name 30m` | Task with time estimate (minutes) |
+| `  > Note text` | Task notes (indented, on next line) |
+| `  Goal: Goal name` | Linked to a monthly goal |
+| `- ~~Task name~~ *time*` | Completed task with timestamp |
 
 ## Development
 
 ```bash
-# Run the app
-npm start
+npm start          # Run the app
+npm run build      # Package for macOS (.dmg + .zip)
+npm run pack       # Unpacked build (faster, for testing)
+```
 
-# Package for macOS
-npm run build
+### Project Structure
 
-# Create unpacked build (faster, for testing)
-npm run pack
+```
+today-mac/
+├── main.js        # Electron main process (settings, IPC, file I/O)
+├── index.html     # Main window (UI + all renderer logic)
+├── ghost.html     # Ghost capture floating window
+└── package.json
 ```
 
 ## License
