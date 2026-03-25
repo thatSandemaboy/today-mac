@@ -46,11 +46,28 @@ Plus **Monthly Goals** always visible at the top — your north star that keeps 
 
 ## Getting Started
 
-### Option 1: Download Release
+### Option 1: Download a Release
 
-1. Download the latest `.dmg` from [Releases](../../releases)
-2. Open the DMG and drag **Today** to Applications
-3. First launch: Right-click → Open (required for unsigned apps)
+If you just want to install the app, go to [Releases](../../releases) and download:
+
+- `Today-<version>.dmg` — recommended for most people
+- `Today-<version>-mac.zip` — use this only if you specifically want the zipped app bundle instead of the installer disk image
+
+#### Recommended install steps (`.dmg`)
+
+1. Download the latest `Today-<version>.dmg`
+2. Open the DMG
+3. Drag **Today.app** into **Applications**
+4. Open **Applications** and launch **Today**
+5. If macOS warns that the app is from an unidentified developer, right-click **Today.app** and choose **Open**, then click **Open** again
+
+#### If you downloaded the `.zip` instead
+
+1. Download `Today-<version>-mac.zip`
+2. Unzip it
+3. Move **Today.app** into **Applications**
+4. Launch it from **Applications**
+5. If macOS blocks the first launch, right-click **Today.app** and choose **Open**
 
 ### Option 2: Build from Source
 
@@ -60,6 +77,17 @@ cd today-mac
 npm install
 npm start
 ```
+
+To build installable release files yourself:
+
+```bash
+npm run build
+```
+
+This creates macOS release files such as:
+
+- `.dmg` installer
+- `.zip` app archive
 
 ### First Run
 
