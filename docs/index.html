@@ -3,46 +3,211 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Today — Keyboard-first to-do app for Mac</title>
-  <meta name="description" content="A keyboard-first Kanban to-do app for Mac. Think in weeks, work in days, ship in hours.">
+  <title>Today for Mac</title>
+  <meta name="description" content="Plan the week. Focus the day. Finish with proof. Today is a keyboard-first task app for Mac built around This Week, Today, and Done.">
   <meta name="color-scheme" content="light dark">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <main>
-    <div class="hero">
-      <div class="icon" aria-hidden="true">
-        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect width="48" height="48" rx="11" fill="currentColor" class="icon-bg"/>
-          <path d="M15 24.5L21 30.5L33 18.5" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" class="icon-check"/>
-        </svg>
-      </div>
-      <h1>Today</h1>
-      <p class="tagline">Your day, at a glance.</p>
-      <p class="description">
-        A keyboard-first Kanban to-do app that respects how you actually think about work.
-        Three columns &mdash; This Week, Today, Done &mdash; and nothing else.
-      </p>
-      <a href="https://github.com/thatSandemaboy/today-mac/releases/latest/download/Today.zip" class="download-btn">
-        Download for macOS
+  <div class="page-shell">
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="Today home">
+        <span class="brand-mark">Today</span>
+        <span class="brand-meta">for Mac</span>
       </a>
-      <p class="meta">v2.0.0 &middot; Requires macOS 13+</p>
-      <div class="install-steps">
-        <p class="install-title">Installation</p>
-        <ol>
-          <li>Unzip the download and move <strong>Today</strong> to Applications</li>
-          <li>Right-click the app and select <strong>Open</strong></li>
-          <li>Click <strong>Open</strong> in the dialog that appears</li>
-        </ol>
-        <p class="install-note">
-          macOS requires this one-time step for apps not on the App Store.
-          After that, Today opens normally.
-        </p>
-      </div>
-    </div>
-  </main>
-  <footer>
-    <a href="https://github.com/thatSandemaboy/today-mac" class="github-link">GitHub</a>
-  </footer>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="#workflow">Workflow</a>
+        <a href="#features">Features</a>
+        <a href="#install">Install</a>
+      </nav>
+      <a class="header-cta" href="https://github.com/thatSandemaboy/today-mac/releases">Download</a>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">A calmer way to decide what matters now</p>
+          <h1>Plan the week. Focus the day. Finish with proof.</h1>
+          <p class="hero-body">
+            Today is a keyboard-first task app for Mac built around the way work actually moves:
+            from <strong>This Week</strong>, into <strong>Today</strong>, and finally into <strong>Done</strong>.
+          </p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="https://github.com/thatSandemaboy/today-mac/releases">Download the DMG</a>
+            <a class="button button-secondary" href="https://github.com/thatSandemaboy/today-mac">View on GitHub</a>
+          </div>
+          <p class="hero-note">macOS app. Plain markdown storage. Keyboard-first by default.</p>
+        </div>
+
+        <div class="hero-visual" aria-hidden="true">
+          <div class="device-frame">
+            <div class="device-toolbar">
+              <div class="traffic-lights">
+                <span></span><span></span><span></span>
+              </div>
+              <div class="device-title">Today</div>
+            </div>
+
+            <div class="mock-app">
+              <div class="mock-toprail">
+                <div class="mock-brand">
+                  <span class="mock-brand-name">Today</span>
+                  <span class="mock-brand-meta">for Mac</span>
+                </div>
+                <div class="mock-focus">
+                  <span class="mock-focus-label">Monthly Focus</span>
+                  <div class="mock-pills">
+                    <span>Ship landing page</span>
+                    <span>Protect focus time</span>
+                    <span>Close loop daily</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mock-columns">
+                <section class="mock-section mock-section-today">
+                  <div class="mock-section-header">
+                    <span>Today</span>
+                    <span>4</span>
+                  </div>
+                  <div class="mock-card active">
+                    <span class="mock-check"></span>
+                    <div>
+                      <strong>Review homepage copy</strong>
+                      <small>North star lane</small>
+                    </div>
+                  </div>
+                  <div class="mock-card">
+                    <span class="mock-check"></span>
+                    <div>
+                      <strong>Ship release notes</strong>
+                      <small>Linked to Monthly Focus</small>
+                    </div>
+                  </div>
+                  <div class="mock-card">
+                    <span class="mock-check"></span>
+                    <div>
+                      <strong>25 minute focus block</strong>
+                      <small>Timer running</small>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="mock-section">
+                  <div class="mock-section-header">
+                    <span>This Week</span>
+                    <span>6</span>
+                  </div>
+                  <div class="mock-line">Finalize product screenshots</div>
+                  <div class="mock-line">Polish download instructions</div>
+                  <div class="mock-line">Review carryover behavior</div>
+                  <div class="mock-line">Capture standup notes</div>
+                </section>
+
+                <section class="mock-section mock-section-done">
+                  <div class="mock-section-header">
+                    <span>Done</span>
+                    <span>3</span>
+                  </div>
+                  <div class="mock-line done">Fix task persistence</div>
+                  <div class="mock-line done">Refresh Mac UI</div>
+                  <div class="mock-line done">Push release candidate</div>
+                </section>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="story-band" id="workflow">
+        <div class="section-kicker">Workflow</div>
+        <div class="story-grid">
+          <article>
+            <h2>This Week keeps your commitments visible.</h2>
+            <p>No infinite backlog. Just the work you actually expect to move this week.</p>
+          </article>
+          <article>
+            <h2>Today becomes your working lane.</h2>
+            <p>Pull only what deserves your attention now. The rest can wait without disappearing.</p>
+          </article>
+          <article>
+            <h2>Done gives you proof, not clutter.</h2>
+            <p>Completed tasks stay visible long enough to feel progress, then quietly archive away.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="feature-scene" id="features">
+        <div class="section-kicker">Why It Feels Different</div>
+        <div class="feature-layout">
+          <div class="feature-copy">
+            <h2>Built for people who think in weeks, work in days, and ship in hours.</h2>
+            <p>
+              Today is deliberately narrow. It favors clear structure, strong shortcuts, and plain text files
+              over endless configuration and list sprawl.
+            </p>
+            <ul class="feature-list">
+              <li>Monthly goals stay pinned to the top as your north star.</li>
+              <li>Global ghost capture lets you catch work from anywhere on your Mac.</li>
+              <li>Focus mode turns one task into a full-screen working surface with a timer.</li>
+              <li>Tasks live in `today.md`, so your data stays readable and portable.</li>
+            </ul>
+          </div>
+
+          <div class="feature-stack" aria-hidden="true">
+            <div class="feature-panel feature-panel-ghost">
+              <span class="panel-label">Ghost Capture</span>
+              <div class="ghost-bar">
+                <span class="ghost-dot"></span>
+                <span>Add to This Week...</span>
+                <span class="ghost-key">↵</span>
+              </div>
+            </div>
+            <div class="feature-panel feature-panel-focus">
+              <span class="panel-label">Focus Mode</span>
+              <div class="focus-timer">24:12</div>
+              <div class="focus-task">Review the launch page and ship the final copy.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="install-section" id="install">
+        <div class="section-kicker">Install</div>
+        <div class="install-layout">
+          <div class="install-copy">
+            <h2>Download the release and be working in minutes.</h2>
+            <p>
+              Most people should download the latest <strong>.dmg</strong> from GitHub Releases, drag
+              <strong>Today.app</strong> into Applications, and open it from there.
+            </p>
+            <div class="install-actions">
+              <a class="button button-primary" href="https://github.com/thatSandemaboy/today-mac/releases">Open Releases</a>
+              <a class="button button-secondary" href="https://github.com/thatSandemaboy/today-mac#readme">Read install guide</a>
+            </div>
+          </div>
+
+          <ol class="install-steps">
+            <li>Download the latest <strong>Today-*.dmg</strong> from Releases.</li>
+            <li>Open the DMG and drag <strong>Today.app</strong> into Applications.</li>
+            <li>Launch it from Applications.</li>
+            <li>If macOS blocks the first open, right-click the app and choose <strong>Open</strong>.</li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="final-cta">
+        <p class="final-kicker">One page. Three lanes. A clearer day.</p>
+        <h2>Download Today for Mac.</h2>
+        <a class="button button-primary" href="https://github.com/thatSandemaboy/today-mac/releases">Get the latest release</a>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>Today for Mac</span>
+      <a href="https://github.com/thatSandemaboy/today-mac">GitHub</a>
+      <a href="https://github.com/thatSandemaboy/today-mac/releases">Releases</a>
+    </footer>
+  </div>
 </body>
 </html>
