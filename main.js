@@ -115,8 +115,9 @@ function createWindow() {
     trafficLightPosition: { x: 20, y: 19 },
     backgroundColor: '#ffffff',
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true
     }
   });
 
@@ -180,8 +181,9 @@ function createGhostWindow() {
     resizable: false,
     hasShadow: true,
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true
     }
   });
 

@@ -1324,6 +1324,675 @@
       justify-content: center;
       gap: 12px;
     }
+
+    /* Editorial Refresh */
+    :root {
+      --bg-primary: #f7f1e8;
+      --bg-secondary: #efe5d7;
+      --bg-tertiary: #e7d9c7;
+      --text-primary: #201714;
+      --text-secondary: rgba(32, 23, 20, 0.72);
+      --text-muted: rgba(32, 23, 20, 0.46);
+      --accent: #a44a2b;
+      --accent-hover: #8d3f24;
+      --accent-subtle: rgba(164, 74, 43, 0.12);
+      --accent-foreground: #fff8f1;
+      --border: rgba(87, 55, 34, 0.12);
+      --border-strong: rgba(87, 55, 34, 0.2);
+      --border-focus: #a44a2b;
+      --done-text: rgba(32, 23, 20, 0.38);
+      --shadow: 0 12px 30px rgba(62, 37, 23, 0.08);
+      --shadow-lg: 0 30px 60px rgba(62, 37, 23, 0.16);
+      --shadow-focus: 0 0 0 1px rgba(164, 74, 43, 0.2);
+      --font-stack: "SF Pro Text", "Avenir Next", "Helvetica Neue", sans-serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-primary: #171311;
+        --bg-secondary: #1f1815;
+        --bg-tertiary: #2a211d;
+        --text-primary: rgba(252, 245, 237, 0.94);
+        --text-secondary: rgba(252, 245, 237, 0.72);
+        --text-muted: rgba(252, 245, 237, 0.42);
+        --accent: #df7d57;
+        --accent-hover: #f28d64;
+        --accent-subtle: rgba(223, 125, 87, 0.16);
+        --accent-foreground: #130f0d;
+        --border: rgba(255, 236, 221, 0.1);
+        --border-strong: rgba(255, 236, 221, 0.16);
+        --done-text: rgba(252, 245, 237, 0.32);
+        --shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
+        --shadow-lg: 0 36px 80px rgba(0, 0, 0, 0.42);
+      }
+    }
+
+    body {
+      background:
+        radial-gradient(circle at top left, rgba(164, 74, 43, 0.12), transparent 32%),
+        radial-gradient(circle at top right, rgba(0, 0, 0, 0.05), transparent 26%),
+        linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 24%, var(--bg-primary) 100%);
+      color: var(--text-primary);
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image: linear-gradient(rgba(87, 55, 34, 0.03) 1px, transparent 1px);
+      background-size: 100% 28px;
+      opacity: 0.55;
+      mix-blend-mode: multiply;
+    }
+
+    .app {
+      padding-top: 38px;
+      gap: 18px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .monthly-goals {
+      padding: 18px 28px 14px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,0.2), transparent);
+      gap: 18px;
+      position: relative;
+    }
+
+    .monthly-goals::after {
+      content: '';
+      position: absolute;
+      left: 28px;
+      right: 28px;
+      bottom: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-strong), transparent);
+    }
+
+    .app-brand {
+      min-width: 210px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .app-eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+
+    .app-wordmark-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .app-wordmark {
+      font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+      font-size: 34px;
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+      color: var(--text-primary);
+    }
+
+    .app-submark {
+      font-size: 11px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-weight: 700;
+    }
+
+    .monthly-header {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      padding-left: 18px;
+      border-left: 1px solid var(--border);
+      min-width: 150px;
+    }
+
+    .monthly-title {
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      color: var(--accent);
+    }
+
+    .monthly-hint {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .monthly-pills {
+      gap: 10px;
+      flex: 1;
+      min-width: 240px;
+    }
+
+    .monthly-pill {
+      border-radius: 999px;
+      padding: 6px 14px;
+      background: rgba(255,255,255,0.25);
+      backdrop-filter: blur(8px);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.25);
+    }
+
+    .monthly-pill:hover {
+      background: rgba(255,255,255,0.45);
+      border-color: rgba(164, 74, 43, 0.24);
+      color: var(--text-primary);
+    }
+
+    .goal-progress {
+      border-radius: 999px;
+      padding: 3px 7px;
+      background: rgba(87, 55, 34, 0.08);
+    }
+
+    .monthly-actions {
+      gap: 12px;
+    }
+
+    .shortcut-hint {
+      border-radius: 999px;
+      padding: 7px 12px;
+      background: rgba(255,255,255,0.3);
+      border-color: transparent;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .shortcut-hint:hover {
+      background: rgba(255,255,255,0.55);
+      color: var(--text-primary);
+    }
+
+    .task-list {
+      max-width: 760px;
+      padding: 0 28px 12px;
+    }
+
+    .section {
+      margin-bottom: 22px;
+      position: relative;
+    }
+
+    .section::before {
+      content: '';
+      position: absolute;
+      left: 5px;
+      right: 0;
+      top: 54px;
+      height: 1px;
+      background: linear-gradient(90deg, var(--border-strong), transparent 72%);
+    }
+
+    .section-header {
+      padding: 22px 6px 12px;
+      display: grid;
+      grid-template-columns: auto auto auto 1fr;
+      grid-template-areas:
+        "title count key date"
+        "note note note note";
+      column-gap: 10px;
+      row-gap: 6px;
+      align-items: baseline;
+      background: linear-gradient(180deg, var(--bg-primary) 72%, rgba(247,241,232,0));
+      backdrop-filter: blur(8px);
+    }
+
+    .section-title {
+      grid-area: title;
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      color: var(--text-muted);
+    }
+
+    .section-count {
+      grid-area: count;
+      font-size: 11px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: rgba(87, 55, 34, 0.08);
+      color: var(--text-secondary);
+    }
+
+    .section-date {
+      grid-area: date;
+      justify-self: end;
+      font-size: 12px;
+      letter-spacing: 0.02em;
+    }
+
+    .section-key {
+      grid-area: key;
+      border-radius: 999px;
+      padding: 3px 8px;
+      border-color: transparent;
+      background: rgba(255,255,255,0.34);
+      opacity: 1;
+      font-weight: 700;
+    }
+
+    .section-note {
+      grid-area: note;
+      font-size: 12px;
+      color: var(--text-muted);
+      letter-spacing: 0.01em;
+    }
+
+    .section[data-section="today"] {
+      padding: 4px 0 12px;
+    }
+
+    .section[data-section="today"] .section-header {
+      background: linear-gradient(180deg, rgba(164, 74, 43, 0.12), rgba(164, 74, 43, 0.03) 58%, rgba(247,241,232,0));
+    }
+
+    .section[data-section="today"] .section-title {
+      font-size: 24px;
+      line-height: 1;
+      text-transform: none;
+      letter-spacing: -0.04em;
+      color: var(--text-primary);
+      font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+    }
+
+    .section[data-section="today"] .section-count {
+      background: var(--accent-subtle);
+      color: var(--accent);
+    }
+
+    .section[data-section="today"]::before {
+      background: linear-gradient(90deg, rgba(164, 74, 43, 0.36), transparent 78%);
+    }
+
+    .section[data-section="done"] .section-title {
+      color: var(--text-secondary);
+    }
+
+    .task {
+      padding: 8px 10px 8px 4px;
+      gap: 12px;
+      border-radius: 12px;
+      transition: background 0.18s ease, transform 0.18s ease, opacity 0.18s ease;
+    }
+
+    .task:hover,
+    .task.selected,
+    .task.expanded {
+      background: rgba(255,255,255,0.34);
+    }
+
+    .task.selected {
+      transform: translateX(2px);
+      box-shadow: inset 3px 0 0 var(--accent);
+    }
+
+    .task-checkbox {
+      width: 16px;
+      height: 16px;
+      margin-top: 5px;
+      border-width: 1.5px;
+      background: rgba(255,255,255,0.25);
+    }
+
+    .task-checkbox:hover {
+      border-color: var(--accent);
+      background: var(--accent-subtle);
+    }
+
+    .task-checkbox.checked {
+      background: var(--accent);
+      border-color: var(--accent);
+      box-shadow: 0 6px 18px rgba(164, 74, 43, 0.24);
+    }
+
+    .task-text,
+    .task-input {
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    .task:not(.selected) .task-text {
+      color: var(--text-primary);
+    }
+
+    .section[data-section="week"] .task:not(.selected) .task-text,
+    .section[data-section="done"] .task:not(.selected) .task-text {
+      color: var(--text-secondary);
+    }
+
+    .task-goal-tag,
+    .task-link-pill,
+    .timer-btn,
+    .focus-tag {
+      border-radius: 999px;
+    }
+
+    .task-goal-tag {
+      background: var(--accent-subtle);
+      color: var(--accent);
+      padding: 2px 8px;
+    }
+
+    .task-notes {
+      border-top-style: dashed;
+      border-top-color: var(--border);
+      padding-top: 10px;
+    }
+
+    .empty-state {
+      padding: 10px 6px 4px;
+      font-style: normal;
+      letter-spacing: 0.01em;
+    }
+
+    .add-task {
+      display: block;
+      padding: 6px 0 0 30px;
+    }
+
+    .add-task-btn {
+      appearance: none;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      cursor: pointer;
+      padding: 6px 0;
+      transition: color 0.16s ease, transform 0.16s ease;
+      font-family: inherit;
+    }
+
+    .add-task-btn:hover {
+      color: var(--accent);
+      transform: translateX(2px);
+    }
+
+    kbd {
+      border-radius: 999px;
+      padding: 2px 7px;
+      box-shadow: none;
+      background: rgba(255,255,255,0.34);
+    }
+
+    .search-overlay,
+    .modal-overlay,
+    .setup-overlay {
+      backdrop-filter: blur(18px);
+    }
+
+    .search-overlay {
+      background: rgba(24, 16, 13, 0.26);
+      padding-top: 118px;
+    }
+
+    .search-box {
+      border-radius: 22px;
+      width: 560px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0.52));
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow-lg);
+      border-color: rgba(255,255,255,0.22);
+    }
+
+    .search-input-wrapper {
+      padding: 18px 20px;
+    }
+
+    .search-input {
+      font-size: 18px;
+    }
+
+    .search-result {
+      padding: 14px 18px;
+      border-left: 3px solid transparent;
+    }
+
+    .search-result.selected,
+    .search-result:hover {
+      background: rgba(164, 74, 43, 0.08);
+      border-left-color: var(--accent);
+    }
+
+    .modal-overlay {
+      background: rgba(24, 16, 13, 0.3);
+      align-items: center;
+      padding-top: 0;
+    }
+
+    .modal {
+      width: 520px;
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.82), rgba(255,255,255,0.62));
+      backdrop-filter: blur(18px);
+      border-color: rgba(255,255,255,0.24);
+      transform: translateY(18px) scale(0.985);
+    }
+
+    .modal-header,
+    .modal-footer {
+      padding-left: 28px;
+      padding-right: 28px;
+    }
+
+    .modal-header {
+      padding-top: 24px;
+      padding-bottom: 16px;
+    }
+
+    .modal-title {
+      font-size: 22px;
+      letter-spacing: -0.03em;
+      font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+    }
+
+    .modal-subtitle {
+      line-height: 1.5;
+    }
+
+    .modal-body {
+      padding: 20px 28px;
+      max-height: 360px;
+    }
+
+    .modal-task {
+      padding: 10px 0;
+    }
+
+    .modal-btn {
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-weight: 700;
+    }
+
+    .modal-btn-secondary {
+      background: rgba(255,255,255,0.36);
+      border-color: transparent;
+    }
+
+    .modal-btn-primary {
+      box-shadow: 0 10px 24px rgba(164, 74, 43, 0.18);
+    }
+
+    .shortcut-grid {
+      gap: 12px 18px;
+    }
+
+    .focus-indicator,
+    .link-mode-indicator {
+      border-radius: 999px;
+      background: rgba(24, 16, 13, 0.84);
+      box-shadow: var(--shadow);
+    }
+
+    .focus-view {
+      position: relative;
+      overflow: hidden;
+      padding: 56px 24px;
+      background:
+        radial-gradient(circle at top, rgba(164, 74, 43, 0.18), transparent 34%),
+        linear-gradient(180deg, rgba(255,255,255,0.2), transparent 30%);
+    }
+
+    .focus-card {
+      border-radius: 28px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.76), rgba(255,255,255,0.54));
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow-lg);
+      border-color: rgba(255,255,255,0.26);
+      max-width: 560px;
+    }
+
+    .focus-task-text {
+      font-size: 26px;
+      line-height: 1.3;
+      letter-spacing: -0.03em;
+    }
+
+    .focus-timer {
+      font-size: 82px;
+    }
+
+    .focus-progress {
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(87, 55, 34, 0.1);
+    }
+
+    .focus-stop {
+      border-radius: 999px;
+      padding: 10px 22px;
+      background: rgba(255,255,255,0.36);
+      border-color: transparent;
+    }
+
+    .setup-overlay {
+      background:
+        radial-gradient(circle at top, rgba(164, 74, 43, 0.18), transparent 38%),
+        linear-gradient(180deg, rgba(247,241,232,0.98), rgba(247,241,232,0.92));
+      backdrop-filter: blur(14px);
+    }
+
+    .setup-card {
+      max-width: 520px;
+      padding: 40px 36px;
+      border-radius: 30px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.78), rgba(255,255,255,0.56));
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow-lg);
+      border: 1px solid rgba(255,255,255,0.28);
+    }
+
+    .setup-card::before {
+      content: 'Today';
+      display: block;
+      font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+      font-size: 38px;
+      letter-spacing: -0.05em;
+      line-height: 0.95;
+      margin-bottom: 18px;
+      color: var(--text-primary);
+    }
+
+    .setup-title {
+      font-size: 34px;
+      line-height: 1;
+      letter-spacing: -0.05em;
+      font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+      margin-bottom: 10px;
+    }
+
+    .setup-subtitle {
+      font-size: 15px;
+      max-width: 34ch;
+      margin: 0 auto 28px;
+    }
+
+    .setup-path,
+    .setup-input {
+      border-radius: 18px;
+      background: rgba(255,255,255,0.42);
+      border: 1px solid rgba(87, 55, 34, 0.08);
+    }
+
+    .setup-actions,
+    .setup-btn-row {
+      gap: 14px;
+    }
+
+    .setup-btn.primary,
+    .setup-btn.text {
+      border-radius: 999px;
+      padding: 11px 18px;
+    }
+
+    .setup-btn.text {
+      background: rgba(255,255,255,0.34);
+      color: var(--text-secondary);
+      border: 1px solid transparent;
+    }
+
+    .setup-btn.text:hover {
+      text-decoration: none;
+      color: var(--text-primary);
+      background: rgba(255,255,255,0.56);
+    }
+
+    @media (max-width: 720px) {
+      .monthly-goals {
+        padding: 16px 18px 12px;
+      }
+
+      .app-brand,
+      .monthly-header,
+      .monthly-actions {
+        width: 100%;
+      }
+
+      .monthly-header {
+        padding-left: 0;
+        border-left: none;
+      }
+
+      .task-list {
+        padding: 0 18px 12px;
+      }
+
+      .section-header {
+        grid-template-columns: auto auto auto;
+        grid-template-areas:
+          "title count key"
+          "date date date"
+          "note note note";
+      }
+
+      .section-date {
+        justify-self: start;
+      }
+
+      .focus-timer {
+        font-size: 64px;
+      }
+
+      .focus-hint {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+    }
   </style>
 </head>
 <body>
@@ -1355,9 +2024,15 @@
 
   <div class="app">
     <div class="monthly-goals" id="monthlyGoals">
+      <div class="app-brand">
+        <div class="app-wordmark-row">
+          <span class="app-wordmark">Today</span>
+          <span class="app-submark">for Mac</span>
+        </div>
+      </div>
       <div class="monthly-header">
         <span class="monthly-title">Monthly Focus</span>
-        <span class="monthly-hint">⌘⇧M</span>
+        <span class="monthly-hint">Keep your north star visible with <kbd>⌘⇧M</kbd></span>
       </div>
       <div class="monthly-pills" id="monthlyPills"></div>
       <div class="monthly-actions">
@@ -1372,6 +2047,7 @@
           <span class="section-count" id="todayCount">0</span>
           <span class="section-key">1</span>
           <span class="section-date" id="todayDate"></span>
+          <span class="section-note">Your active lane. Pull only what you intend to finish.</span>
         </div>
         <div class="tasks" id="todayTasks"></div>
         <div class="add-task">
@@ -1388,6 +2064,7 @@
           <span class="section-title">This Week</span>
           <span class="section-count" id="weekCount">0</span>
           <span class="section-key">2</span>
+          <span class="section-note">Committed work waiting for its turn.</span>
         </div>
         <div class="tasks" id="weekTasks"></div>
         <div class="add-task">
@@ -1404,6 +2081,7 @@
           <span class="section-title">Done</span>
           <span class="section-count" id="doneCount">0</span>
           <span class="section-key">3</span>
+          <span class="section-note">Visible proof that the day moved.</span>
         </div>
         <div class="tasks" id="doneTasks"></div>
       </div>
@@ -1569,6 +2247,8 @@
       linkSourceTaskId: null
     };
 
+    const appBridge = window.todayAPI || null;
+
     // Timer interval
     let timerInterval = null;
 
@@ -1706,6 +2386,41 @@
     // File path (set by main process)
     let tasksFilePath = '';
 
+    function parseTimestamp(value) {
+      if (!value) return null;
+      const timestamp = Date.parse(value);
+      return Number.isFinite(timestamp) ? timestamp : null;
+    }
+
+    function serializeTimestamp(timestamp) {
+      return Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : null;
+    }
+
+    function createTask(overrides = {}) {
+      const hasCreatedAt = Object.prototype.hasOwnProperty.call(overrides, 'createdAt');
+      const hasCompletedAt = Object.prototype.hasOwnProperty.call(overrides, 'completedAt');
+
+      return {
+        id: overrides.id || generateId(),
+        text: overrides.text || '',
+        createdAt: hasCreatedAt ? overrides.createdAt : Date.now(),
+        notes: overrides.notes || '',
+        goalId: overrides.goalId ?? null,
+        links: overrides.links ? [...overrides.links] : [],
+        editing: overrides.editing || false,
+        _justCreated: overrides._justCreated || false,
+        snoozedUntil: overrides.snoozedUntil ?? null,
+        completedAt: hasCompletedAt ? overrides.completedAt : null
+      };
+    }
+
+    function stampTasksAsCurrentDay(tasks) {
+      const now = Date.now();
+      tasks.forEach(task => {
+        task.createdAt = now;
+      });
+    }
+
     // Parse markdown to state
     function parseMarkdown(content) {
       const lines = content.split('\n');
@@ -1778,18 +2493,11 @@
               }
             }
 
-            currentTask = {
-              id: generateId(),
+            currentTask = createTask({
               text: text,
-              createdAt: Date.now(),
-              notes: '',
-              goalId: null,
-              links: []
-            };
-
-            if (completedAt) {
-              currentTask.completedAt = completedAt;
-            }
+              createdAt: null,
+              completedAt: completedAt
+            });
 
             newState.tasks[currentSection].push(currentTask);
             continue;
@@ -1814,12 +2522,21 @@
             // Snoozed
             else if (metaLine.startsWith('Snoozed: ')) {
               const snoozeDate = metaLine.slice(9);
-              currentTask.snoozedUntil = new Date(snoozeDate).getTime();
+              currentTask.snoozedUntil = parseTimestamp(snoozeDate);
             }
             // Related links
             else if (metaLine.startsWith('Related: ')) {
               const linkIds = metaLine.slice(9).split(',').map(s => s.trim()).filter(Boolean);
               currentTask.links = linkIds;
+            }
+            else if (metaLine.startsWith('ID: ')) {
+              currentTask.id = metaLine.slice(4).trim() || currentTask.id;
+            }
+            else if (metaLine.startsWith('Created: ')) {
+              currentTask.createdAt = parseTimestamp(metaLine.slice(9));
+            }
+            else if (metaLine.startsWith('Completed: ')) {
+              currentTask.completedAt = parseTimestamp(metaLine.slice(11));
             }
           }
         }
@@ -1861,6 +2578,8 @@
       md += '# This Week\n';
       state.tasks.week.forEach(task => {
         md += `- ${task.text}\n`;
+        md += `  ID: ${task.id}\n`;
+        if (task.createdAt) md += `  Created: ${serializeTimestamp(task.createdAt)}\n`;
         if (task.notes) md += `  > ${task.notes}\n`;
         if (task.goalId) {
           const goal = state.monthlyGoals.find(g => g.id === task.goalId);
@@ -1875,6 +2594,8 @@
       md += '# Today\n';
       state.tasks.today.forEach(task => {
         md += `- ${task.text}\n`;
+        md += `  ID: ${task.id}\n`;
+        if (task.createdAt) md += `  Created: ${serializeTimestamp(task.createdAt)}\n`;
         if (task.notes) md += `  > ${task.notes}\n`;
         if (task.goalId) {
           const goal = state.monthlyGoals.find(g => g.id === task.goalId);
@@ -1890,6 +2611,9 @@
       state.tasks.done.forEach(task => {
         const timeStr = task.completedAt ? formatRelativeTime(task.completedAt) : '';
         md += `- ~~${task.text}~~${timeStr ? ` *${timeStr}*` : ''}\n`;
+        md += `  ID: ${task.id}\n`;
+        if (task.createdAt) md += `  Created: ${serializeTimestamp(task.createdAt)}\n`;
+        if (task.completedAt) md += `  Completed: ${serializeTimestamp(task.completedAt)}\n`;
         if (task.notes) md += `  > ${task.notes}\n`;
         if (task.links && task.links.length > 0) md += `  Related: ${task.links.join(', ')}\n`;
       });
@@ -1907,9 +2631,8 @@
     // Save state to file
     function saveState() {
       const content = stateToMarkdown();
-      if (typeof require !== 'undefined') {
-        const { ipcRenderer } = require('electron');
-        ipcRenderer.send('save-tasks', content);
+      if (appBridge) {
+        appBridge.saveTasks(content);
       }
       // Also keep localStorage as backup
       localStorage.setItem('todayApp', JSON.stringify({
@@ -2809,16 +3532,13 @@
     // Add task
     function addTask(column, focusEdit = true, insertIndex = 0) {
       saveForUndo('add task');
-      const task = {
-        id: generateId(),
+      const task = createTask({
         text: '',
         editing: focusEdit,
         createdAt: Date.now(),
-        notes: '',
         goalId: state.selectedGoalId,
-        links: [],
         _justCreated: true
-      };
+      });
       state.tasks[column].splice(insertIndex, 0, task);
       state.focusedColumn = column;
       state.selectedTaskIndex = insertIndex;
@@ -3027,7 +3747,7 @@
       if (state.lastVisitDate && state.lastVisitDate !== today) {
         // Check if there are tasks from "today" column that weren't completed
         const oldTodayTasks = state.tasks.today.filter(t => {
-          return t.createdAt && new Date(t.createdAt).toDateString() !== today;
+          return !t.createdAt || new Date(t.createdAt).toDateString() !== today;
         });
 
         if (oldTodayTasks.length > 0) {
@@ -3072,6 +3792,9 @@
     }
 
     function carryoverKeepAll() {
+      stampTasksAsCurrentDay(state.tasks.today);
+      saveState();
+      renderAll();
       document.getElementById('carryoverModal').classList.remove('visible');
     }
 
@@ -3084,6 +3807,7 @@
           state.tasks.week.unshift(task);
         }
       });
+      stampTasksAsCurrentDay(state.tasks.today);
       saveState();
       renderAll();
       document.getElementById('carryoverModal').classList.remove('visible');
@@ -3122,7 +3846,16 @@
         state.tasks.done.forEach(task => {
           const el = document.createElement('div');
           el.style.cssText = 'padding: 6px 0; font-size: 13px; color: var(--text-secondary);';
-          el.innerHTML = `<span style="text-decoration: line-through;">${task.text}</span> <span style="color: var(--text-muted); font-size: 11px;">${formatRelativeTime(task.completedAt)}</span>`;
+          const taskText = document.createElement('span');
+          taskText.style.textDecoration = 'line-through';
+          taskText.textContent = task.text;
+          el.appendChild(taskText);
+
+          const time = document.createElement('span');
+          time.style.cssText = 'color: var(--text-muted); font-size: 11px;';
+          time.textContent = ` ${formatRelativeTime(task.completedAt)}`;
+          el.appendChild(time);
+
           doneList.appendChild(el);
         });
       }
@@ -3589,9 +4322,8 @@
     }
 
     function updateWindowTitle(title) {
-      if (typeof require !== 'undefined') {
-        const { ipcRenderer } = require('electron');
-        ipcRenderer.send('update-title', title);
+      if (appBridge) {
+        appBridge.updateTitle(title);
       }
       document.title = title;
     }
@@ -3666,45 +4398,42 @@
     }
 
     // Handle IPC from main process
-    if (typeof require !== 'undefined') {
-      const { ipcRenderer } = require('electron');
-
-      // Initial load from file
-      ipcRenderer.on('initial-load', (event, data) => {
+    if (appBridge) {
+      appBridge.onInitialLoad((data) => {
         if (data.needsSetup) {
           document.getElementById('setupOverlay').style.display = 'flex';
-          initSetupFlow(ipcRenderer);
+          initSetupFlow(appBridge);
           return;
         }
         tasksFilePath = data.filePath;
         loadFromMarkdown(data.content);
+        archiveOldTasks();
+        checkSnoozedTasks();
         renderAll();
         console.log('Loaded from:', tasksFilePath);
       });
 
-      // File changed externally
-      ipcRenderer.on('file-changed', (event, content) => {
+      appBridge.onFileChanged((content) => {
         loadFromMarkdown(content);
+        archiveOldTasks();
+        checkSnoozedTasks();
         renderAll();
         showToast('Reloaded from file');
       });
 
-      ipcRenderer.on('quick-capture', () => {
+      appBridge.onQuickCapture(() => {
         addTask('week');
       });
 
-      ipcRenderer.on('ghost-capture-add', (event, taskText) => {
+      appBridge.onGhostCaptureAdd((taskText) => {
         saveForUndo('add task');
-        const task = {
-          id: generateId(),
+        const task = createTask({
           text: taskText,
           editing: false,
           createdAt: Date.now(),
-          notes: '',
           goalId: null,
-          links: [],
           _justCreated: true
-        };
+        });
         state.tasks.week.unshift(task);
         saveState();
         renderAll();
@@ -3715,17 +4444,14 @@
 
     // Open file in editor (Cmd+E)
     function openInEditor() {
-      if (typeof require !== 'undefined') {
-        const { ipcRenderer } = require('electron');
-        ipcRenderer.send('open-file');
+      if (appBridge) {
+        appBridge.openFile();
         showToast('Opening in editor...');
       }
     }
 
     // Initialize
     loadState();
-    archiveOldTasks();
-    checkSnoozedTasks();
     renderAll();
 
     // Check snoozed tasks periodically
@@ -3742,8 +4468,7 @@
     let setupExistingFile = false;
 
     function initSetupFlow(ipc) {
-      const os = require('os');
-      const defaultFolder = require('path').join(os.homedir(), '.today');
+      const defaultFolder = ipc.getDefaultTasksFolder();
       setupFolderPath = defaultFolder;
 
       const stageA = document.getElementById('setupStageA');
@@ -3752,7 +4477,7 @@
       const taskInput = document.getElementById('setupTaskInput');
 
       document.getElementById('setupChooseFolder').addEventListener('click', async () => {
-        const result = await ipc.invoke('choose-folder');
+        const result = await ipc.chooseFolder();
         if (!result) return;
         setupFolderPath = result.folder;
         setupExistingFile = result.fileExists;
@@ -3791,24 +4516,23 @@
     }
 
     async function finishSetup(ipc, firstTaskText) {
-      const result = await ipc.invoke('complete-setup', { folderPath: setupFolderPath });
+      const result = await ipc.completeSetup(setupFolderPath);
       tasksFilePath = result.filePath;
       loadFromMarkdown(result.content);
+      archiveOldTasks();
+      checkSnoozedTasks();
       renderAll();
 
       // Add first task if provided
       if (firstTaskText) {
         saveForUndo('add task');
-        const task = {
-          id: generateId(),
+        const task = createTask({
           text: firstTaskText,
           editing: false,
           createdAt: Date.now(),
-          notes: '',
           goalId: null,
-          links: [],
           _justCreated: true
-        };
+        });
         state.tasks.today.unshift(task);
         state.focusedColumn = 'today';
         state.selectedTaskIndex = 0;
