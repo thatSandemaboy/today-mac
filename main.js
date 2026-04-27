@@ -1,17 +1,42 @@
-const { app, BrowserWindow, globalShortcut, nativeTheme, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, globalShortcut, nativeTheme, ipcMain, dialog, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
+const crypto = require('crypto');
+
+function hashContent(content) {
+  return crypto.createHash('sha256').update(content, 'utf8').digest('hex');
+}
 
 let mainWindow;
 let ghostWindow;
+
+// Tracks whether the user actually wants to quit (Cmd+Q / app.quit) vs.
+// just closing the window. macOS productivity apps stay alive when the
+// window is closed so global shortcuts keep working.
+let isQuitting = false;
+
+// Single-instance lock: if another copy is already running, hand focus
+// to it and exit. Prevents two instances racing to write today.md.
+const gotSingleInstanceLock = app.requestSingleInstanceLock();
+if (!gotSingleInstanceLock) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      if (!mainWindow.isVisible()) mainWindow.show();
+      mainWindow.focus();
+    }
+  });
+}
 
 // Settings directory (always ~/.today/)
 const SETTINGS_DIR = path.join(os.homedir(), '.today');
 const SETTINGS_FILE = path.join(SETTINGS_DIR, 'settings.json');
 
 // Settings object
-let settings = { tasksFilePath: null, setupComplete: false };
+let settings = { tasksFilePath: null, setupComplete: false, openAtLogin: true };
 let needsSetup = false;
 
 function loadSettings() {
@@ -70,7 +95,9 @@ function ensureDataFile(filePath) {
 function readTasksFile() {
   const filePath = getTasksFile();
   ensureDataFile(filePath);
-  return fs.readFileSync(filePath, 'utf8');
+  const content = fs.readFileSync(filePath, 'utf8');
+  lastWrittenHash = hashContent(content);
+  return content;
 }
 
 // Write tasks file
@@ -78,11 +105,15 @@ function writeTasksFile(content) {
   const filePath = getTasksFile();
   ensureDataFile(filePath);
   fs.writeFileSync(filePath, content, 'utf8');
+  lastWrittenHash = hashContent(content);
 }
 
 // File watcher
 let fileWatcher = null;
-let lastWriteTime = 0;
+// sha256 of the content the app last wrote (or last read). Watcher events whose
+// disk content hashes to this value are self-induced and get filtered out;
+// anything else means something edited the file out from under us.
+let lastWrittenHash = null;
 
 function setupFileWatcher() {
   if (fileWatcher) {
@@ -93,13 +124,21 @@ function setupFileWatcher() {
   if (!filePath || !fs.existsSync(filePath)) return;
 
   fileWatcher = fs.watch(filePath, (eventType) => {
-    // Ignore changes we just made (within 1 second)
-    if (Date.now() - lastWriteTime < 1000) return;
+    if (eventType !== 'change' || !mainWindow) return;
 
-    if (eventType === 'change' && mainWindow) {
-      const content = readTasksFile();
-      mainWindow.webContents.send('file-changed', content);
+    let diskContent;
+    try {
+      diskContent = fs.readFileSync(filePath, 'utf8');
+    } catch (e) {
+      return;
     }
+
+    const diskHash = hashContent(diskContent);
+    if (diskHash === lastWrittenHash) return;
+
+    const expectedHash = lastWrittenHash;
+    lastWrittenHash = diskHash;
+    mainWindow.webContents.send('file-changed', { content: diskContent, expectedHash });
   });
 }
 
@@ -123,13 +162,27 @@ function createWindow() {
 
   mainWindow.loadFile('index.html');
 
+  // Hide-on-close instead of quit. Keeps global shortcuts (Cmd+Shift+Space,
+  // Cmd+Opt+N) alive and matches the convention used by Things, Notion, Linear.
+  // Cmd+Q sets isQuitting=true via 'before-quit' so the real quit still works.
+  mainWindow.on('close', (event) => {
+    if (!isQuitting) {
+      event.preventDefault();
+      mainWindow.hide();
+    }
+  });
+
   // Send initial file content when ready
   mainWindow.webContents.on('did-finish-load', () => {
     if (needsSetup) {
       mainWindow.webContents.send('initial-load', { needsSetup: true });
     } else {
       const content = readTasksFile();
-      mainWindow.webContents.send('initial-load', { content, filePath: getTasksFile() });
+      mainWindow.webContents.send('initial-load', {
+        content,
+        filePath: getTasksFile(),
+        openAtLogin: settings.openAtLogin !== false
+      });
       setupFileWatcher();
     }
   });
@@ -202,7 +255,6 @@ function createGhostWindow() {
 
 // Handle save request from renderer
 ipcMain.on('save-tasks', (event, content) => {
-  lastWriteTime = Date.now();
   writeTasksFile(content);
 });
 
@@ -259,25 +311,133 @@ ipcMain.handle('complete-setup', async (event, { folderPath }) => {
   saveSettings();
   ensureDataFile(settings.tasksFilePath);
   needsSetup = false;
-  const content = fs.readFileSync(settings.tasksFilePath, 'utf8');
+  const content = readTasksFile();
   setupFileWatcher();
   return { content, filePath: settings.tasksFilePath };
 });
 
-app.whenReady().then(createWindow);
+// Relocate the tasks file to a new folder. Used by the in-app "Change tasks
+// file location..." command after first-run setup is already complete.
+// We move (rename) the existing file rather than copy+delete so any external
+// editor watching the file follows it transparently on the same volume.
+ipcMain.handle('change-tasks-file', async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openDirectory', 'createDirectory'],
+    title: 'Move your tasks file to…'
+  });
+  if (result.canceled || result.filePaths.length === 0) return null;
+  const newFolder = result.filePaths[0];
+  const newPath = path.join(newFolder, 'today.md');
+  const oldPath = settings.tasksFilePath;
+
+  if (oldPath && fs.existsSync(oldPath) && oldPath !== newPath) {
+    if (fs.existsSync(newPath)) {
+      // Don't clobber an existing file at the destination — let the user
+      // resolve it manually rather than silently overwriting.
+      return { error: 'A today.md already exists in that folder. Move or rename it first.' };
+    }
+    if (!fs.existsSync(newFolder)) fs.mkdirSync(newFolder, { recursive: true });
+    fs.renameSync(oldPath, newPath);
+  }
+
+  settings.tasksFilePath = newPath;
+  saveSettings();
+  ensureDataFile(newPath);
+  const content = readTasksFile();
+  setupFileWatcher();
+  return { content, filePath: newPath };
+});
+
+// Toggle "open at login" from the renderer's settings UI.
+ipcMain.handle('set-open-at-login', (event, enabled) => {
+  settings.openAtLogin = !!enabled;
+  saveSettings();
+  app.setLoginItemSettings({
+    openAtLogin: !!enabled,
+    openAsHidden: true
+  });
+  return settings.openAtLogin;
+});
+
+// Standard macOS app menu — without this, no Cmd+Q binding because we set
+// up a custom window that doesn't render the default menu by itself.
+function buildMenu() {
+  const isMac = process.platform === 'darwin';
+  const template = [
+    ...(isMac ? [{
+      label: app.name,
+      submenu: [
+        { role: 'about' },
+        { type: 'separator' },
+        { role: 'hide' },
+        { role: 'hideOthers' },
+        { role: 'unhide' },
+        { type: 'separator' },
+        { role: 'quit' }
+      ]
+    }] : []),
+    {
+      label: 'Edit',
+      submenu: [
+        { role: 'undo' },
+        { role: 'redo' },
+        { type: 'separator' },
+        { role: 'cut' },
+        { role: 'copy' },
+        { role: 'paste' },
+        { role: 'selectAll' }
+      ]
+    },
+    {
+      label: 'View',
+      submenu: [
+        { role: 'reload' },
+        { role: 'toggleDevTools' },
+        { type: 'separator' },
+        { role: 'togglefullscreen' }
+      ]
+    },
+    {
+      label: 'Window',
+      submenu: [
+        { role: 'minimize' },
+        { role: 'close' }
+      ]
+    }
+  ];
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+}
+
+app.whenReady().then(() => {
+  buildMenu();
+  // Apply the persisted login-at-startup preference. Default is on.
+  app.setLoginItemSettings({
+    openAtLogin: settings.openAtLogin !== false,
+    openAsHidden: true
+  });
+  createWindow();
+});
 
 app.on('window-all-closed', () => {
-  if (fileWatcher) {
-    fileWatcher.close();
-  }
+  // We deliberately don't quit on macOS — the app survives window close
+  // so Cmd+Shift+Space and Cmd+Opt+N keep firing. To actually quit, use
+  // Cmd+Q (which routes through 'before-quit' and sets isQuitting=true).
   if (process.platform !== 'darwin') {
     app.quit();
   }
 });
 
+app.on('before-quit', () => {
+  isQuitting = true;
+});
+
 app.on('activate', () => {
+  // Dock icon click: reveal the hidden window or recreate it if quit-and-relaunched.
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
+  } else if (mainWindow) {
+    mainWindow.show();
+    mainWindow.focus();
   }
 });
 
