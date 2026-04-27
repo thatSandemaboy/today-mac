@@ -6,7 +6,8 @@
   "scripts": {
     "start": "electron .",
     "build": "electron-builder --mac",
-    "pack": "electron-builder --dir"
+    "pack": "electron-builder --dir",
+    "icon": "python3 build/make_icon.py && iconutil -c icns build/icon.iconset"
   },
   "author": "",
   "license": "MIT",
@@ -26,7 +27,11 @@
     "mac": {
       "category": "public.app-category.productivity",
       "target": ["dmg", "zip"],
-      "darkModeSupport": true
+      "darkModeSupport": true,
+      "icon": "build/icon.icns",
+      "identity": null,
+      "gatekeeperAssess": false,
+      "hardenedRuntime": false
     },
     "dmg": {
       "title": "Today",
